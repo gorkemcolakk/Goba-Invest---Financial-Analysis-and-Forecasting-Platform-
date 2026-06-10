@@ -28,6 +28,8 @@ env/
 
 # Project Specific
 static/cache/*
+.env
+*.log
 !static/cache/.gitkeep
 .gemini/
 .agent/

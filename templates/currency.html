@@ -333,65 +333,9 @@
     <footer style="margin-top: 4rem; padding: 4rem 1rem; text-align: center; border-top: 1px solid var(--card-border); color: var(--text-secondary);">
         <p>&copy; 2024 GoBa Investment. Tüm Hakları Saklıdır.</p>
     </footer>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script>
-        async function updateDetailRate() {
-            try {
-                const symbol = "{{ symbol }}";
-                const response = await fetch('/api/rates');
-                const data = await response.json();
-                const item = data.find(x => x.symbol === symbol);
-                
-                if (item) {
-                    const priceEl = document.querySelector('.current-price-hero h2');
-                    const badgeEl = document.querySelector('.current-price-hero .rate-badge');
-                    const timeEl = document.querySelector('.current-price-hero p');
-
-                    if (priceEl) {
-                        const oldRate = parseFloat(priceEl.innerText);
-                        const newRate = parseFloat(item.rate);
-                        
-                        if (oldRate !== newRate) {
-                            const prec = {{ precision }};
-                            priceEl.innerText = newRate.toFixed(prec);
-                            
-                            const targetEl = priceEl.closest('.current-price-hero') || priceEl;
-                            targetEl.classList.remove('flash-up', 'flash-down');
-                            void targetEl.offsetWidth;
-                            targetEl.classList.add(newRate > oldRate ? 'flash-up' : 'flash-down');
-
-                        }
-                    }
-
-                    if (badgeEl) {
-                        const prec = {{ precision }};
-                        const sign = item.change >= 0 ? '+' : '';
-                        const pctSign = item.change_percent >= 0 ? '+' : '';
-                        badgeEl.innerText = `${sign}${item.change.toFixed(prec)} (${pctSign}${item.change_percent}%)`;
-                        badgeEl.className = `rate-badge ${item.change >= 0 ? 'rate-up' : 'rate-down'}`;
-                    }
-
-                    if (timeEl) {
-                        const currentLang = document.documentElement.getAttribute('lang') || 'tr';
-                        const labelText = translations[currentLang]['last_update'] || 'Last Update';
-                        // Keep the icon and the dynamic data-i18n attribute for consistency
-                        timeEl.innerHTML = `<span class="live-dot"></span> <span data-i18n="last_update">${labelText}</span>: ${item.update_time}`;
-                    }
-                }
-            } catch (error) {
-                console.error('Detail update failed:', error);
-            }
-            
-            const jitter = Math.random() * 4000 - 2000;
-            setTimeout(updateDetailRate, 10000 + jitter);
-        }
-
-        setTimeout(updateDetailRate, 2000);
-
-        // Theme Toggle Logic
-        const themeToggle = document.getElementById('theme-toggle');
-        const html = document.documentElement;
-
-        // Language Logic
+        // ── Çeviri Tablosu ──────────────────────────────────────────────────
         const translations = {
             'tr': {
                 'nav_home': '<i class="fa-solid fa-house"></i> Anasayfa',
@@ -399,8 +343,7 @@
                 'nav_contact': '<i class="fa-solid fa-envelope"></i> İletişim',
                 'back_btn': '<i class="fa-solid fa-arrow-left"></i> Piyasaya Dön',
                 'chart_title': '<i class="fa-solid fa-chart-line gradient-text"></i> Eğilim Grafiği',
-                'live_status': 'Canlı',
-                'last_update': 'Son Güncelleme',
+                'live_status': 'Canlı', 'last_update': 'Son Güncelleme',
                 'table_title': '<i class="fa-solid fa-table-list gradient-text"></i> Aylık Tahmin Listesi (2 Yıllık Projeksiyon)',
                 'th_date': '<i class="fa-regular fa-calendar" style="margin-right: 8px;"></i> Tarih',
                 'th_forecast': '<i class="fa-solid fa-chart-simple" style="margin-right: 8px;"></i> Tahmin ({{ info.quote }})',
@@ -416,8 +359,7 @@
                 'nav_contact': '<i class="fa-solid fa-envelope"></i> Contact',
                 'back_btn': '<i class="fa-solid fa-arrow-left"></i> Back to Market',
                 'chart_title': '<i class="fa-solid fa-chart-line gradient-text"></i> Trend Chart',
-                'live_status': 'Live',
-                'last_update': 'Last Update',
+                'live_status': 'Live', 'last_update': 'Last Update',
                 'table_title': '<i class="fa-solid fa-table-list gradient-text"></i> Monthly Forecast List (2-Year Projection)',
                 'th_date': '<i class="fa-regular fa-calendar" style="margin-right: 8px;"></i> Date',
                 'th_forecast': '<i class="fa-solid fa-chart-simple" style="margin-right: 8px;"></i> Forecast ({{ info.quote }})',
@@ -428,58 +370,62 @@
                 'name_Ons Altın': 'Gold (Oz)', 'name_Gümüş': 'Silver', 'name_Gram Altın': 'Gold (Gram)'
             }
         };
-        const langToggle = document.getElementById('lang-toggle');
-        const langText = document.getElementById('lang-text');
-        function updateLanguage(lang) {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (translations[lang] && translations[lang][key]) el.innerHTML = translations[lang][key];
-            });
-            document.querySelectorAll('.date-text').forEach(el => {
-                const trText = el.getAttribute('data-tr');
-                const enText = el.getAttribute('data-en');
-                if (trText && enText) el.innerText = lang === 'en' ? enText : trText;
-            });
-            langText.innerText = lang.toUpperCase();
-            localStorage.setItem('lang', lang);
-            html.setAttribute('lang', lang);
-            
-            // Update chart iframe if it exists
+
+        // ── Dil başlat ──────────────────────────────────────────────────────
+        initLangToggle(() => translations, (lang) => {
+            // Grafik iframe dil değişimi
             const chartIframe = document.getElementById('chart-iframe');
             if (chartIframe) {
                 const trPlot = "{{ url_for('static', filename=plot_file_tr) }}";
                 const enPlot = "{{ url_for('static', filename=plot_file_en) }}";
-                const currentSrc = chartIframe.getAttribute('src');
-                const targetSrc = lang === 'en' ? enPlot : trPlot;
-                if (currentSrc !== targetSrc) {
-                    chartIframe.src = targetSrc;
+                chartIframe.src = lang === 'en' ? enPlot : trPlot;
+            }
+        });
+
+        // ── Canlı Detay Güncelleyici ────────────────────────────────────────
+        async function updateDetailRate() {
+            try {
+                const symbol = "{{ symbol }}";
+                const response = await fetch('/api/rates');
+                const data = await response.json();
+                const item = data.rates.find(x => x.symbol === symbol);
+
+                if (item) {
+                    const priceEl = document.querySelector('.current-price-hero h2');
+                    const badgeEl = document.querySelector('.current-price-hero .rate-badge');
+                    const timeEl = document.querySelector('.current-price-hero p');
+
+                    if (priceEl) {
+                        const oldRate = parseFloat(priceEl.innerText);
+                        const newRate = parseFloat(item.rate);
+                        if (oldRate !== newRate) {
+                            priceEl.innerText = newRate.toFixed({{ precision }});
+                            const targetEl = priceEl.closest('.current-price-hero') || priceEl;
+                            targetEl.classList.remove('flash-up', 'flash-down');
+                            void targetEl.offsetWidth;
+                            targetEl.classList.add(newRate > oldRate ? 'flash-up' : 'flash-down');
+                        }
+                    }
+                    if (badgeEl) {
+                        const prec = {{ precision }};
+                        const sign = item.change >= 0 ? '+' : '';
+                        const pctSign = item.change_percent >= 0 ? '+' : '';
+                        badgeEl.innerText = `${sign}${item.change.toFixed(prec)} (${pctSign}${item.change_percent}%)`;
+                        badgeEl.className = `rate-badge ${item.change >= 0 ? 'rate-up' : 'rate-down'}`;
+                    }
+                    if (timeEl) {
+                        const currentLang = document.documentElement.getAttribute('lang') || 'tr';
+                        const labelText = translations[currentLang]['last_update'] || 'Last Update';
+                        timeEl.innerHTML = `<span class="live-dot"></span> <span data-i18n="last_update">${labelText}</span>: ${item.update_time}`;
+                    }
                 }
+            } catch (error) {
+                console.error('Detail update failed:', error);
             }
+            const jitter = Math.random() * 4000 - 2000;
+            setTimeout(updateDetailRate, 10000 + jitter);
         }
-        langToggle.addEventListener('click', () => {
-            const currentLang = html.getAttribute('lang') || 'tr';
-            updateLanguage(currentLang === 'tr' ? 'en' : 'tr');
-        });
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme') || 'dark';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        });
-
-        updateLanguage(localStorage.getItem('lang') || 'tr');
-
-        // Live Clock logic
-        function updateClock() {
-            const clockEl = document.querySelector('#live-clock span');
-            if (clockEl) {
-                const now = new Date();
-                clockEl.textContent = now.toLocaleTimeString('tr-TR', { hour12: false });
-            }
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+        setTimeout(updateDetailRate, 2000);
     </script>
 </body>
 </html>

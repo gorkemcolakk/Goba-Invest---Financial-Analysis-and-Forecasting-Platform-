@@ -348,14 +348,34 @@ nav a:hover, nav a.active, nav a.nav-active {
 }
 
 .currency-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+.glass-card:hover .currency-icon {
+    transform: scale(1.08);
+}
+
+/* Kart ikon varyantları */
+.icon-card-us         { background: #0f1a2e; border: 1.5px solid rgba(59, 130, 246, 0.3); }
+.icon-card-eu         { background: #0f152e; border: 1.5px solid rgba(99, 102, 241, 0.3); }
+.icon-card-gb         { background: #1a0f2e; border: 1.5px solid rgba(168, 85, 247, 0.3); }
+.icon-card-gold_ons   { background: linear-gradient(135deg, #3d1c00, #5c3300); border: 1.5px solid rgba(245, 158, 11, 0.35); }
+.icon-card-gold_gram  { background: linear-gradient(135deg, #2d1400, #4a2800); border: 1.5px solid rgba(251, 191, 36, 0.3); }
+.icon-card-silver     { background: #1a1e24; border: 1.5px solid rgba(148, 163, 184, 0.3); }
+
+.icon-code {
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #f8fafc;
+    line-height: 1;
 }
 
 .currency-info h3 {
@@ -492,159 +512,152 @@ footer {
 }
 
 /* ═══════════════════════════════════════════════════ */
-/*               TICKER TABLE — PREMIUM               */
+/*          TICKER TABLE — CLEAN FINANCIAL STYLE       */
 /* ═══════════════════════════════════════════════════ */
 .ticker-table-section {
-    border-radius: 20px !important;
-    overflow: hidden;
+    background: var(--card-bg);
     border: 1px solid var(--card-border);
+    border-radius: 16px;
+    overflow: hidden;
 }
 
 .ticker-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
     font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
 }
 
 .ticker-table thead {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
-    border-bottom: 2px solid var(--card-border);
-}
-
-[data-theme='light'] .ticker-table thead {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(16, 185, 129, 0.06) 100%);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .ticker-table th {
-    padding: 1rem 1.5rem;
+    padding: 0.85rem 1.2rem;
     text-align: left;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.72rem;
     text-transform: uppercase;
-    letter-spacing: 1.2px;
+    letter-spacing: 0.8px;
     color: var(--text-secondary);
-    position: relative;
 }
 
-.ticker-table th:first-child {
-    padding-left: 1.8rem;
+.ticker-table .th-right {
+    text-align: right;
 }
 
 .ticker-table td {
-    padding: 0.9rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    transition: all 0.25s ease;
+    padding: 0.6rem 1.2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
     vertical-align: middle;
 }
 
-.ticker-table td:first-child {
-    padding-left: 1.8rem;
-}
-
 [data-theme='light'] .ticker-table td {
-    border-bottom-color: rgba(0, 0, 0, 0.05);
-}
-
-/* Alternating rows */
-.ticker-table tbody tr:nth-child(even) {
-    background: rgba(255, 255, 255, 0.015);
-}
-
-[data-theme='light'] .ticker-table tbody tr:nth-child(even) {
-    background: rgba(0, 0, 0, 0.015);
-}
-
-/* Hover effect */
-.ticker-table tbody tr {
-    transition: all 0.25s ease;
-    cursor: default;
+    border-bottom-color: rgba(0, 0, 0, 0.04);
 }
 
 .ticker-table tbody tr:hover {
-    background: rgba(59, 130, 246, 0.06);
-    transform: scale(1.002);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 [data-theme='light'] .ticker-table tbody tr:hover {
-    background: rgba(59, 130, 246, 0.04);
+    background: rgba(0, 0, 0, 0.02);
 }
 
-/* Product name column */
+/* ── Ürün adı ───────────────────────────────────── */
 .ticker-name {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-weight: 600;
-    font-size: 0.92rem;
+    gap: 10px;
+    font-weight: 500;
 }
 
-.ticker-name i {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    font-size: 0.85rem;
+.ticker-flag {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 28px;
+    text-align: center;
 }
 
-[data-theme='light'] .ticker-name i {
-    background: rgba(0, 0, 0, 0.04);
+/* ── Metal noktaları ─────────────────────────────── */
+.metal-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
-/* Price column */
+.gold-dot {
+    background: #f59e0b;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+.gold-dot-sm {
+    width: 8px;
+    height: 8px;
+    background: #f59e0b;
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+    margin: 0 2px;
+}
+
+.silver-dot {
+    background: #94a3b8;
+    box-shadow: 0 0 6px rgba(148, 163, 184, 0.4);
+}
+
+/* ── Fiyat ──────────────────────────────────────── */
 .ticker-price {
+    text-align: right;
     font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    font-size: 1.05rem;
-    letter-spacing: -0.3px;
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
-/* Change columns */
-.ticker-change, .ticker-pct {
+/* ── Değişim / % ────────────────────────────────── */
+.ticker-change,
+.ticker-pct {
+    text-align: right;
     font-weight: 600;
     font-size: 0.85rem;
     white-space: nowrap;
 }
 
-/* Status dot with intense neon glow */
-.ticker-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 10px;
-    vertical-align: middle;
-    position: relative;
-    border: 1px solid rgba(255,255,255,0.2);
+/* ── Zaman ──────────────────────────────────────── */
+.ticker-time {
+    text-align: right;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
 }
 
-.dot-green {
-    background: #10b981;
-    box-shadow: 0 0 8px #10b981, 0 0 12px rgba(16, 185, 129, 0.5);
-    animation: neonGreen 4s infinite alternate;
+/* Renkler */
+.rate-up   { color: #10b981; }
+.rate-down { color: #ef4444; }
+
+/* Flash animasyonu */
+.flash-up   { animation: flashGreen 0.6s ease; }
+.flash-down { animation: flashRed 0.6s ease; }
+
+@keyframes flashGreen {
+    0%   { background: rgba(16, 185, 129, 0.2); }
+    100% { background: transparent; }
+}
+@keyframes flashRed {
+    0%   { background: rgba(239, 68, 68, 0.2); }
+    100% { background: transparent; }
 }
 
-.dot-red {
-    background: #ef4444;
-    box-shadow: 0 0 8px #ef4444, 0 0 12px rgba(239, 68, 68, 0.5);
-    animation: neonRed 4s infinite alternate;
+/* Responsive */
+@media (max-width: 768px) {
+    .ticker-table th,
+    .ticker-table td {
+        padding: 0.5rem 0.7rem;
+        font-size: 0.78rem;
+    }
+    .ticker-time { display: none; }
 }
-
-@keyframes neonGreen {
-    from { box-shadow: 0 0 5px #10b981, 0 0 12px #10b981; opacity: 1; }
-    to { box-shadow: 0 0 15px #10b981, 0 0 25px #10b981; opacity: 0.9; }
-}
-
-@keyframes neonRed {
-    from { box-shadow: 0 0 5px #ef4444, 0 0 12px #ef4444; opacity: 1; }
-    to { box-shadow: 0 0 15px #ef4444, 0 0 25px #ef4444; opacity: 0.9; }
-}
-
-/* Ticker Flash - Handled by UNIFIED FLASH SYSTEM */
 
 /* ═══════════════════════════════════════════════════ */
 /*             ANALYSIS GRID — 3 COLUMNS              */

@@ -82,6 +82,7 @@
         <div style="max-width: 800px; margin: 0 auto;">
             <div class="glass-card" style="padding: 3rem;">
                 <form action="/contact" method="post">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                         <div class="form-group">
                             <label data-i18n="label_name">Ad Soyad</label>

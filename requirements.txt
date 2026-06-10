@@ -1,7 +1,8 @@
-Flask
-requests
-pandas
-prophet
-plotly
-yfinance
-holidays
+Flask>=2.3
+requests>=2.31
+pandas>=2.0
+prophet>=1.1
+plotly>=5.17
+yfinance>=0.2
+holidays>=0.37
+python-dotenv>=1.0

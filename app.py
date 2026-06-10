@@ -1,13 +1,31 @@
 import os
+import sys
+import logging
+import secrets
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, g, session
 from prophet import Prophet
 import plotly.graph_objects as go
 import json
 
+from config import Config
+from rate_cache import RateCache
+
+# ── Logging ──────────────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=getattr(logging, Config.LOG_LEVEL),
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    handlers=[
+        logging.FileHandler(Config.LOG_FILE, encoding='utf-8'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger('goba')
+
 app = Flask(__name__)
+app.config['SECRET_KEY'] = Config.SECRET_KEY
 
 # Supported Currencies Settings
 SUPPORTED_CURRENCIES = {
@@ -21,16 +39,17 @@ SUPPORTED_CURRENCIES = {
 
 # Türev Altın Ürünleri (Gram Altın üzerinden hesaplanır)
 GOLD_DERIVED = [
-    {"id": "ceyrek",     "name": "Çeyrek Altın",     "name_en": "Quarter Gold",    "multiplier": 1.75,  "icon": "fa-ring"},
-    {"id": "yarim",      "name": "Yarım Altın",      "name_en": "Half Gold",       "multiplier": 3.51,  "icon": "fa-circle-half-stroke"},
-    {"id": "tam",        "name": "Tam Altın",        "name_en": "Full Gold",       "multiplier": 7.02,  "icon": "fa-circle"},
-    {"id": "cumhuriyet", "name": "Cumhuriyet Altın", "name_en": "Republic Gold",   "multiplier": 7.216, "icon": "fa-star"},
+    {"id": "ceyrek",     "name": "Çeyrek Altın",     "name_en": "Quarter Gold",    "multiplier": 1.75,  "icon_type": "ceyrek"},
+    {"id": "yarim",      "name": "Yarım Altın",      "name_en": "Half Gold",       "multiplier": 3.51,  "icon_type": "yarim"},
+    {"id": "tam",        "name": "Tam Altın",        "name_en": "Full Gold",       "multiplier": 7.02,  "icon_type": "tam"},
+    {"id": "cumhuriyet", "name": "Cumhuriyet Altın", "name_en": "Republic Gold",   "multiplier": 7.216, "icon_type": "cumhuriyet"},
 ]
 
 # Cache Settings
-CACHE_DIR = "static/cache"
+CACHE_DIR = Config.CACHE_DIR
 if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR, exist_ok=True)
+    logger.info(f"Cache directory created: {CACHE_DIR}")
 
 def get_current_data_all():
     """Tüm güncel kur verilerini Yahoo üzerinden çeker."""
@@ -43,34 +62,34 @@ def get_current_data_all():
     usd_try_rate = 1.0
     try:
         url = "https://query2.finance.yahoo.com/v8/finance/chart/USDTRY=X?range=1d&interval=1m"
-        res = requests.get(url, headers=headers, timeout=5).json()
+        res = requests.get(url, headers=headers, timeout=Config.YAHOO_TIMEOUT).json()
         usd_try_rate = res['chart']['result'][0]['meta']['regularMarketPrice']
     except Exception as e:
-        print(f"USD/TRY rate fetch error: {e}")
+        logger.warning(f"USD/TRY rate fetch error: {e}")
     
     # Altın ons verisini bir kez çek (hem Ons hem Gram için)
     gold_usd = 0.0
     gold_prev_usd = 0.0
     try:
         gold_url = "https://query2.finance.yahoo.com/v8/finance/chart/GC=F?range=1d&interval=1m"
-        gold_res = requests.get(gold_url, headers=headers, timeout=5).json()
+        gold_res = requests.get(gold_url, headers=headers, timeout=Config.YAHOO_TIMEOUT).json()
         gold_meta = gold_res['chart']['result'][0]['meta']
         gold_usd = gold_meta['regularMarketPrice']
         gold_prev_usd = gold_meta.get('previousClose', gold_usd)
     except Exception as e:
-        print(f"Gold (GC=F) fetch error: {e}")
+        logger.warning(f"Gold (GC=F) fetch error: {e}")
     
     # Gümüş verisini bir kez çek
     silver_usd = 0.0
     silver_prev_usd = 0.0
     try:
         silver_url = "https://query2.finance.yahoo.com/v8/finance/chart/SI=F?range=1d&interval=1m"
-        silver_res = requests.get(silver_url, headers=headers, timeout=5).json()
+        silver_res = requests.get(silver_url, headers=headers, timeout=Config.YAHOO_TIMEOUT).json()
         silver_meta = silver_res['chart']['result'][0]['meta']
         silver_usd = silver_meta['regularMarketPrice']
         silver_prev_usd = silver_meta.get('previousClose', silver_usd)
     except Exception as e:
-        print(f"Silver (SI=F) fetch error: {e}")
+        logger.warning(f"Silver (SI=F) fetch error: {e}")
     
     for symbol, info in SUPPORTED_CURRENCIES.items():
         precision = info['precision']
@@ -96,14 +115,14 @@ def get_current_data_all():
             else:
                 # Normal döviz kurları
                 url = f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?range=1d&interval=1m"
-                res = requests.get(url, headers=headers, timeout=5).json()
+                res = requests.get(url, headers=headers, timeout=Config.YAHOO_TIMEOUT).json()
                 meta = res['chart']['result'][0]['meta']
                 rate_val = meta['regularMarketPrice']
                 prev_close = meta.get('previousClose', rate_val)
                 change = rate_val - prev_close
                 change_percent = (change / prev_close) * 100 if prev_close != 0 else 0
         except Exception as e:
-            print(f"Yahoo live rate error for {symbol}: {e}")
+            logger.warning(f"Yahoo live rate error for {symbol}: {e}")
             rate_val = 0.0
             change = 0.0
             change_percent = 0.0
@@ -123,8 +142,10 @@ def get_current_data_all():
         })
     return data
 
-def train_and_forecast(currency_symbol, periods=730):
+def train_and_forecast(currency_symbol, periods=None):
     """Borsa verilerini çekerek gelişmiş Prophet tahmini üretir."""
+    if periods is None:
+        periods = Config.FORECAST_PERIODS
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -133,10 +154,10 @@ def train_and_forecast(currency_symbol, periods=730):
         if currency_symbol in ('GC=F', 'SI=F'):
             # Emtia: Direkt futures (USD) verisini kullan
             emtia_url = f"https://query2.finance.yahoo.com/v8/finance/chart/{currency_symbol}?range=5y&interval=1d"
-            emtia_res = requests.get(emtia_url, headers=headers, timeout=15).json()
+            emtia_res = requests.get(emtia_url, headers=headers, timeout=Config.YAHOO_HISTORY_TIMEOUT).json()
             
             if 'chart' not in emtia_res or emtia_res['chart']['result'] is None:
-                print(f"Yahoo API Error ({currency_symbol}): {emtia_res}")
+                logger.warning(f"Yahoo API Error ({currency_symbol}): {emtia_res}")
                 return None
             
             emtia_data = emtia_res['chart']['result'][0]
@@ -152,14 +173,14 @@ def train_and_forecast(currency_symbol, periods=730):
             gold_url = "https://query2.finance.yahoo.com/v8/finance/chart/GC=F?range=5y&interval=1d"
             usd_url = "https://query2.finance.yahoo.com/v8/finance/chart/USDTRY=X?range=5y&interval=1d"
             
-            gold_res = requests.get(gold_url, headers=headers, timeout=15).json()
-            usd_res = requests.get(usd_url, headers=headers, timeout=15).json()
+            gold_res = requests.get(gold_url, headers=headers, timeout=Config.YAHOO_HISTORY_TIMEOUT).json()
+            usd_res = requests.get(usd_url, headers=headers, timeout=Config.YAHOO_HISTORY_TIMEOUT).json()
             
             if 'chart' not in gold_res or gold_res['chart']['result'] is None:
-                print(f"Yahoo API Error (GC=F): {gold_res}")
+                logger.warning(f"Yahoo API Error (GC=F): {gold_res}")
                 return None
             if 'chart' not in usd_res or usd_res['chart']['result'] is None:
-                print(f"Yahoo API Error (USDTRY): {usd_res}")
+                logger.warning(f"Yahoo API Error (USDTRY): {usd_res}")
                 return None
             
             gold_data = gold_res['chart']['result'][0]
@@ -186,10 +207,10 @@ def train_and_forecast(currency_symbol, periods=730):
         else:
             # Normal döviz kurları
             url = f"https://query2.finance.yahoo.com/v8/finance/chart/{currency_symbol}?range=5y&interval=1d"
-            res = requests.get(url, headers=headers, timeout=15).json()
+            res = requests.get(url, headers=headers, timeout=Config.YAHOO_HISTORY_TIMEOUT).json()
             
             if 'chart' not in res or res['chart']['result'] is None:
-                print(f"Yahoo API Error: {res}")
+                logger.warning(f"Yahoo API Error: {res}")
                 return None
                 
             result_data = res['chart']['result'][0]
@@ -296,7 +317,7 @@ def train_and_forecast(currency_symbol, periods=730):
         
         return result
     except Exception as e:
-        print(f"Forecast error for {currency_symbol}: {e}")
+        logger.error(f"Forecast error for {currency_symbol}: {e}")
         return None
 
 def get_ticker_data(forex_data):
@@ -305,7 +326,17 @@ def get_ticker_data(forex_data):
     gram_item = None
     silver_item = None
     usd_try_item = None
-    
+
+    # icon_type → emoji + renk eşlemesi (frontend'de kullanılır)
+    _icon_map = {
+        "USDTRY=X": "usd",
+        "EURTRY=X": "eur",
+        "GBPTRY=X": "gbp",
+        "GC=F":     "gold_ons",
+        "SI=F":     "silver",
+        "XAUTRY=X": "gold_gram",
+    }
+
     for item in forex_data:
         ticker.append({
             "id": item["symbol"].replace("=", ""),
@@ -315,7 +346,8 @@ def get_ticker_data(forex_data):
             "change_percent": item["change_percent"],
             "precision": item["precision"],
             "currency_symbol": item["currency_symbol"],
-            "icon": "fa-dollar-sign" if item["symbol"] == "USDTRY=X" else "fa-euro-sign" if item["symbol"] == "EURTRY=X" else "fa-sterling-sign" if item["symbol"] == "GBPTRY=X" else "fa-coins" if item["flag"] == "gold_ons" else "fa-gem" if item["flag"] == "silver" else "fa-scale-balanced",
+            "icon_type": _icon_map.get(item["symbol"], "default"),
+            "update_time": item["update_time"],
         })
         if item["symbol"] == "XAUTRY=X":
             gram_item = item
@@ -323,7 +355,7 @@ def get_ticker_data(forex_data):
             silver_item = item
         if item["symbol"] == "USDTRY=X":
             usd_try_item = item
-    
+
     # Türev altın ürünlerini ekle
     if gram_item:
         for gold in GOLD_DERIVED:
@@ -338,10 +370,11 @@ def get_ticker_data(forex_data):
                 "change_percent": gram_item["change_percent"],
                 "precision": 2,
                 "currency_symbol": "₺",
-                "icon": gold["icon"],
+                "icon_type": gold["icon_type"],
+                "update_time": gram_item["update_time"],
             })
-    
-    # Gram Gümüş: (Ons Gümüş USD * USD/TRY) / 31.1035
+
+    # Gram Gümüş
     if silver_item and usd_try_item:
         usd_try_rate = usd_try_item["rate"]
         gram_silver_rate = round((silver_item["rate"] * usd_try_rate) / 31.1035, 2)
@@ -355,21 +388,35 @@ def get_ticker_data(forex_data):
             "change_percent": silver_item["change_percent"],
             "precision": 2,
             "currency_symbol": "₺",
-            "icon": "fa-gem",
+            "icon_type": "gram_gumus",
+            "update_time": silver_item["update_time"],
         })
-    
+
     return ticker
+
+# ── CSRF Koruma ──────────────────────────────────────────────────────────────
+@app.before_request
+def csrf_protect():
+    """Her istekte CSRF token oluştur, POST isteklerinde doğrula."""
+    if request.method == 'POST':
+        token = session.get('_csrf_token')
+        form_token = request.form.get('_csrf_token')
+        if not token or not form_token or not secrets.compare_digest(token, form_token):
+            logger.warning(f"CSRF validation failed from {request.remote_addr}")
+            return jsonify({'error': 'CSRF validation failed'}), 403
+
+@app.before_request
+def set_csrf_token():
+    """Session'da CSRF token yoksa oluştur."""
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(32)
+    g.csrf_token = session['_csrf_token']
+
 
 @app.route('/')
 def index():
-    try:
-        forex_data = get_current_data_all()
-    except Exception as e:
-        print(f"Error in index: {e}")
-        forex_data = []
-    
-    ticker_data = get_ticker_data(forex_data)
-    return render_template('index.html', forex_data=forex_data, ticker_data=ticker_data)
+    rates, ticker_data, update_time = rate_cache.get_all()
+    return render_template('index.html', forex_data=rates, ticker_data=ticker_data, update_time=update_time)
 
 @app.route('/currency/<symbol>')
 def currency_page(symbol):
@@ -386,8 +433,8 @@ def currency_page(symbol):
     # Cache kontrolü: Hem CSV hem de Grafik dosyası var mı bak
     if os.path.exists(csv_path) and os.path.exists(plot_path):
         mtime = os.path.getmtime(csv_path)
-        # 2 saatten yeniyse cache kullan
-        if datetime.now().timestamp() - mtime < 7200:
+        # 2 saatten yeniyse cache kullan (Config'den okunur)
+        if datetime.now().timestamp() - mtime < Config.CACHE_TTL_HOURS * 3600:
             try:
                 data = pd.read_csv(csv_path)
                 data['ds'] = pd.to_datetime(data['ds'])
@@ -405,8 +452,8 @@ def currency_page(symbol):
     if data is None:
         return "Veri alınamadı, borsa sunucuları yanıt vermiyor olabilir. Lütfen daha sonra tekrar deneyiniz."
 
-    # Güncel veri listesinden ilgili kuru bul
-    all_rates = get_current_data_all()
+    # Güncel veri cache'ten al
+    all_rates, _, update_time = rate_cache.get_all()
     current_item = next((item for item in all_rates if item['symbol'] == symbol), None)
     
     current_rate = current_item['rate'] if current_item else 0.0
@@ -481,13 +528,17 @@ def currency_page(symbol):
                          plot_file_en=plot_file_en,
                          plot_exists=plot_exists,
                          precision=precision,
-                         update_time=current_item['update_time'] if current_item else datetime.now().strftime('%H:%M:%S'))
+                         update_time=current_item['update_time'] if current_item else update_time)
 
 @app.route('/api/rates')
 def api_rates():
-    forex_data = get_current_data_all()
-    ticker_data = get_ticker_data(forex_data)
-    return jsonify({"rates": forex_data, "ticker": ticker_data})
+    rates, ticker, update_time = rate_cache.get_all()
+    return jsonify({
+        "rates": rates,
+        "ticker": ticker,
+        "last_update": update_time,
+        "stale": rate_cache.is_stale
+    })
 
 @app.route('/news')
 def news():
@@ -496,13 +547,27 @@ def news():
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
-        # Burada mail gönderme veya db kaydı eklenebilir
-        return render_template('contact.html', success=True)
-    return render_template('contact.html')
+        logger.info(f"Contact form submitted: {request.form.get('name')} - {request.form.get('subject')}")
+        return render_template('contact.html', success=True, csrf_token=g.csrf_token)
+    return render_template('contact.html', csrf_token=g.csrf_token)
 
 @app.route('/privacy')
 def privacy():
     return render_template('privacy.html')
 
+# ── Arka Plan Kur Güncelleyici ────────────────────────────────────────────────
+def _fetch_all_rates():
+    """RateCache için fetcher — (rates, ticker) tuple döndürür."""
+    rates = get_current_data_all()
+    ticker = get_ticker_data(rates)
+    return rates, ticker
+
+rate_cache = RateCache(
+    fetcher_func=_fetch_all_rates,
+    update_interval=Config.RATE_UPDATE_INTERVAL
+)
+rate_cache.start()
+
 if __name__ == '__main__':
-    app.run(debug=True, port=int(os.environ.get('PORT', 5000)))
+    logger.info(f"Starting GOBA INVEST on port {Config.PORT} (debug={Config.DEBUG})")
+    app.run(debug=Config.DEBUG, port=Config.PORT)
