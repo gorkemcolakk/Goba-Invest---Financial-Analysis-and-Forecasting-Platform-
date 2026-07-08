@@ -33,7 +33,7 @@ SUPPORTED_CURRENCIES = {
     "EURTRY=X": {"name": "Euro", "flag": "eu", "symbol": "₺", "base": "EUR", "quote": "TRY", "precision": 4},
     "GBPTRY=X": {"name": "Sterlin", "flag": "gb", "symbol": "₺", "base": "GBP", "quote": "TRY", "precision": 4},
     "GC=F":     {"name": "Ons Altın", "flag": "gold_ons", "symbol": "$", "base": "XAU", "quote": "USD", "precision": 2},
-    "SI=F":     {"name": "Gümüş", "flag": "silver", "symbol": "$", "base": "XAG", "quote": "USD", "precision": 2},
+    "SI=F":     {"name": "Ons Gümüş", "flag": "silver", "symbol": "$", "base": "XAG", "quote": "USD", "precision": 2},
     "XAUTRY=X": {"name": "Gram Altın", "flag": "gold_gram", "symbol": "₺", "base": "XAU", "quote": "TRY", "precision": 2},
 }
 
