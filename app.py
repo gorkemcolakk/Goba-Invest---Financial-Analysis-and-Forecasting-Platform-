@@ -477,57 +477,55 @@ def _classify_tag(title: str, summary: str, feed_lang: str = "en") -> str:
     """Haber başlığına/özetine göre otomatik etiket atar."""
     text = (title + " " + summary).lower()
     
+    tag = "Global"
+    
     # Kripto (En Yüksek Öncelik)
     if any(k in text for k in ["bitcoin", "crypto", "kripto", "ethereum", "blockchain", "binance", "coin", "token"]):
-        return "Kripto"
-        
+        tag = "Kripto"
     # Emtia
-    if any(k in text for k in ["gold", "silver", "altın", "gümüş", "commodity", "emtia",
+    elif any(k in text for k in ["gold", "silver", "altın", "gümüş", "commodity", "emtia",
                                 "petrol", "oil", "copper", "bakır", "platinum"]):
-        return "Emtia"
-        
+        tag = "Emtia"
     # Merkez Bankası
-    if any(k in text for k in ["fed", "ecb", "central bank", "merkez bankası", "tcmb",
+    elif any(k in text for k in ["fed", "ecb", "central bank", "merkez bankası", "tcmb",
                                 "interest rate", "faiz", "monetary policy", "para politikası",
                                 "rate cut", "rate hike", "boe", "bank of england"]):
-        return "Merkez Bankası"
-        
+        tag = "Merkez Bankası"
     # Piyasalar / Borsa
-    if any(k in text for k in ["stock", "market", "s&p", "s\u0026p", "nasdaq", "dow", "borsa", "hisse",
+    elif any(k in text for k in ["stock", "market", "s&p", "s\u0026p", "nasdaq", "dow", "borsa", "hisse",
                                 "equit", "index", "endeks", "ipo", "shares", "wall street"]):
-        return "Piyasalar"
-        
+        tag = "Piyasalar"
     # Ekonomi / Makro
-    if any(k in text for k in ["inflation", "enflasyon", "cpi", "gdp", "gsyih", "büyüme",
+    elif any(k in text for k in ["inflation", "enflasyon", "cpi", "gdp", "gsyih", "büyüme",
                                 "recession", "durgunluk", "unemployment", "işsizlik",
                                 "trade deficit", "cari açık", "budget", "bütçe"]):
-        return "Ekonomi"
-        
+        tag = "Ekonomi"
     # Döviz
-    if any(k in text for k in ["dollar", "euro", "sterling", "forex", "currency", "dolar",
+    elif any(k in text for k in ["dollar", "euro", "sterling", "forex", "currency", "dolar",
                                 "döviz", "exchange rate", "kur", "usd", "eur", "gbp",
                                 "yen", "yuan", "lira", " tl", "try", "parite"]):
-        return "Döviz"
-        
+        tag = "Döviz"
     # Türkiye özeli
-    if any(k in text for k in ["turkey", "turkish", "türkiye", "istanbul",
+    elif any(k in text for k in ["turkey", "turkish", "türkiye", "istanbul",
                                "borsa istanbul", "bist", "hazine", "türk lirası"]):
-        return "Türkiye"
-    # Piyasalar / Borsa
-    if any(k in text for k in ["stock", "market", "s&p", "s\u0026p", "nasdaq", "dow", "borsa", "hisse",
-                                "equit", "index", "endeks", "ipo", "shares"]):
-        return "Piyasalar"
+        tag = "Türkiye"
     # Analiz
-    if any(k in text for k in ["analysis", "analiz", "report", "rapor", "forecast",
+    elif any(k in text for k in ["analysis", "analiz", "report", "rapor", "forecast",
                                 "tahmin", "outlook", "görünüm", "review"]):
-        return "Analiz"
-    return "Global"
+        tag = "Analiz"
+
+    if feed_lang == "en":
+        tag = f"{tag} (İNG)"
+    
+    return tag
 
 
 def _tag_color(tag: str) -> str:
     """Etikete renk sınıfı atar."""
+    # tag içinde (İNG) geçiyorsa temizle
+    clean_tag = tag.replace(" (İNG)", "")
     up_tags = {"Emtia", "Türkiye", "Analiz", "Piyasalar", "Kripto"}
-    return "rate-up" if tag in up_tags else "rate-down"
+    return "rate-up" if clean_tag in up_tags else "rate-down"
 
 
 def fetch_news(force_refresh: bool = False) -> list:
@@ -632,11 +630,32 @@ def fetch_news(force_refresh: bool = False) -> list:
             logger.warning(f"Failed to fetch from {feed_cfg['source']}: {e}")
             continue
 
-    # Tarihe göre sırala (en yeni önce)
-    all_articles.sort(key=lambda x: x["pub_timestamp"], reverse=True)
+    # Haberleri tarihe (gün) göre grupla
+    from collections import defaultdict
+    by_date = defaultdict(list)
+    for a in all_articles:
+        day_str = a['date_iso'][:10]
+        by_date[day_str].append(a)
+    
+    sorted_days = sorted(by_date.keys(), reverse=True)
+    for day in sorted_days:
+        by_date[day].sort(key=lambda x: x["pub_timestamp"], reverse=True)
 
-    # En fazla 60 haber göster
-    all_articles = all_articles[:60]
+    final_articles = []
+    # Her günden sırayla 1'er 1'er haber çek (round-robin)
+    # Böylece haberler haftanın 7 gününe yayılır
+    while len(final_articles) < 60:
+        added = False
+        for day in sorted_days:
+            if by_date[day] and len(final_articles) < 60:
+                final_articles.append(by_date[day].pop(0))
+                added = True
+        if not added:
+            break
+
+    # Son olarak yine kronolojik sırala ki arayüzde mantıklı görünsün
+    final_articles.sort(key=lambda x: x["pub_timestamp"], reverse=True)
+    all_articles = final_articles
 
     if all_articles:
         cache["articles"] = all_articles
