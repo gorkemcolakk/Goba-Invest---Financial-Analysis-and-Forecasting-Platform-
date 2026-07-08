@@ -245,18 +245,33 @@
         <div class="current-price-hero fade-in">
             <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 0.5rem;">
                 {% if info.flag == 'gold_ons' %}
-                <i class="fa-solid fa-coins" style="font-size: 1.8rem; color: #f59e0b;"></i>
+                <svg width="32" height="32" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5" />
+                    <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1 ons</text>
+                </svg>
                 {% elif info.flag == 'gold_gram' %}
-                <i class="fa-solid fa-scale-balanced" style="font-size: 1.8rem; color: #f59e0b;"></i>
+                <svg width="32" height="32" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="#f39c12" stroke="#d35400" stroke-width="0.5" />
+                    <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1g</text>
+                </svg>
                 {% elif info.flag == 'silver' %}
-                <i class="fa-solid fa-gem" style="font-size: 1.8rem; color: #94a3b8;"></i>
+                <svg width="32" height="32" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="url(#silverGrad)" stroke="#7f8c8d" stroke-width="0.5" />
+                    <defs>
+                        <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#f5f6fa" />
+                            <stop offset="100%" stop-color="#bdc3c7" />
+                        </linearGradient>
+                    </defs>
+                    <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#333" text-anchor="middle">1 ons</text>
+                </svg>
                 {% else %}
-                <img src="https://flagcdn.com/w40/{{ info.flag }}.png" style="width: 32px; border-radius: 4px;">
+                <img src="https://flagcdn.com/w80/{{ info.flag }}.png" width="32" height="22" alt="{{ info.flag }}" style="border-radius:3px;">
                 {% endif %}
                 <span style="font-size: 1.25rem; font-weight: 500; color: var(--text-secondary);"><span data-i18n="live_status">Canlı</span> <span data-i18n="name_{{ info.name }}">{{ info.name }}</span> / {{ info.quote }}</span>
             </div>
             <div style="display: flex; align-items: baseline; justify-content: center; gap: 1rem;">
-                <h2 style="font-size: 3.5rem; margin: 0;">{{ current_rate }}</h2>
+                <h2 style="font-size: 3.5rem; margin: 0;">{{ current_rate }} {{ info.symbol }}</h2>
                 <span class="rate-badge {% if change_val|float >= 0 %}rate-up{% else %}rate-down{% endif %}" style="font-size: 1.4rem; padding: 0.5rem 1rem;">
                     {{ change_val }} ({{ change_pct }}%)
                 </span>
@@ -272,7 +287,7 @@
                     <script>document.write(document.documentElement.getAttribute('lang') === 'en' ? "{{ forecasts[key].date_en }}" : "{{ forecasts[key].date_tr }}");</script>
                     <noscript>{{ forecasts[key].date_tr }}</noscript>
                 </span>
-                <span class="value">{{ forecasts[key].val }} {{ info.quote }}</span>
+                <span class="value">{{ forecasts[key].val }} {{ info.symbol }}</span>
                 <span class="change {% if forecasts[key].change > 0 %}rate-up{% else %}rate-down{% endif %}">
                     {% if forecasts[key].change > 0 %}+{% endif %}{{ forecasts[key].change }}%
                 </span>
