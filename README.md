@@ -5,6 +5,10 @@
   <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" />
   <img src="https://img.shields.io/badge/Prophet-008080?style=for-the-badge&logo=meta&logoColor=white" />
   <img src="https://img.shields.io/badge/Yahoo_Finance-7B0099?style=for-the-badge&logo=yahoo&logoColor=white" />
+  
+  <br><br>
+  
+  **🔗 [Canlı Demo Sitesini Ziyaret Edin (onrender.com)](https://goba-invest.onrender.com)**
 </div>
 
 ---
