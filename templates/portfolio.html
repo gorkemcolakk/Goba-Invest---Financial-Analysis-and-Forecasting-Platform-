@@ -178,7 +178,7 @@
                                 <th data-i18n="th_amount">Miktar</th>
                                 <th data-i18n="th_buy_price">Alış Maliyeti</th>
                                 <th data-i18n="th_cur_price">Güncel Fiyat</th>
-                                <th data-i18n="th_tot_value">Toplam Değer (TL)</th>
+                                <th data-i18n="th_tot_value">Toplam Değer</th>
                                 <th data-i18n="th_profit">Kar / Zarar</th>
                                 <th data-i18n="th_action">İşlem</th>
                             </tr>
@@ -187,20 +187,25 @@
                             {% for item in items %}
                             <tr>
                                 <td style="font-weight: 600;">
-                                    {% if supported.get(item.symbol, {}).get('flag') %}
-                                        <img src="https://flagcdn.com/w40/{{ supported[item.symbol].flag }}.png" width="20" style="vertical-align: middle; margin-right: 5px; border-radius: 2px;">
+                                    {% set flag_val = supported.get(item.symbol, {}).get('flag') %}
+                                    {% if flag_val in ['us', 'eu', 'gb', 'tr'] %}
+                                        <img src="https://flagcdn.com/w40/{{ flag_val }}.png" width="20" style="vertical-align: middle; margin-right: 5px; border-radius: 2px;">
+                                    {% elif flag_val in ['gold_ons', 'gold_gram'] %}
+                                        <i class="fa-solid fa-coins" style="margin-right: 5px; color: #f59e0b;"></i>
+                                    {% elif flag_val == 'silver' %}
+                                        <i class="fa-solid fa-coins" style="margin-right: 5px; color: #94a3b8;"></i>
                                     {% else %}
-                                        <i class="fa-solid fa-circle-dollar-to-slot" style="margin-right: 5px; color: var(--accent-main);"></i>
+                                        <i class="fa-solid fa-money-bill-transfer" style="margin-right: 5px; color: #10b981;"></i>
                                     {% endif %}
                                     {{ item.name }}
                                 </td>
                                 <td>{{ item.amount }}</td>
-                                <td>{{ "{:,.2f}".format(item.purchase_price) }} {{ item.purchase_currency }}</td>
-                                <td>{{ "{:,.2f}".format(item.current_price) }}</td>
-                                <td style="font-weight: 600;">{{ "{:,.2f}".format(item.value_try) }} ₺</td>
+                                <td>{{ "{:,.2f}".format(item.purchase_price) }} {{ item.pc_symbol }}</td>
+                                <td>{{ "{:,.2f}".format(item.current_price) }} {{ item.pc_symbol }}</td>
+                                <td style="font-weight: 600;">{{ "{:,.2f}".format(item.value_in_pc) }} {{ item.pc_symbol }}</td>
                                 <td>
-                                    <span class="rate-badge {% if item.profit >= 0 %}rate-up{% else %}rate-down{% endif %}" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
-                                        {% if item.profit >= 0 %}+{% endif %}{{ "{:,.2f}".format(item.profit) }} ₺ ({{ "{:.2f}".format(item.profit_pct) }}%)
+                                    <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; {% if item.profit >= 0 %}background: rgba(16, 185, 129, 0.15); color: #10b981;{% else %}background: rgba(239, 68, 68, 0.15); color: #ef4444;{% endif %}">
+                                        {% if item.profit > 0 %}+{% endif %}{{ "{:,.2f}".format(item.profit) }} {{ item.pc_symbol }} ({{ "{:,.2f}".format(item.profit_pct) }}%)
                                     </span>
                                 </td>
                                 <td>
@@ -284,7 +289,7 @@
                 'last_updated': 'Son Güncelleme:',
                 'your_assets': 'Varlıklarınız',
                 'th_asset': 'Varlık', 'th_amount': 'Miktar', 'th_buy_price': 'Alış Maliyeti',
-                'th_cur_price': 'Güncel Fiyat', 'th_tot_value': 'Toplam Değer (TL)',
+                'th_cur_price': 'Güncel Fiyat', 'th_tot_value': 'Toplam Değer',
                 'th_profit': 'Kar / Zarar', 'th_action': 'İşlem',
                 'empty_portfolio': 'Portföyünüz henüz boş. Aşağıdaki formdan varlık ekleyebilirsiniz.',
                 'add_asset': 'Yeni Varlık Ekle',
@@ -303,7 +308,7 @@
                 'last_updated': 'Last Updated:',
                 'your_assets': 'Your Assets',
                 'th_asset': 'Asset', 'th_amount': 'Amount', 'th_buy_price': 'Buy Cost',
-                'th_cur_price': 'Current Price', 'th_tot_value': 'Total Value (TRY)',
+                'th_cur_price': 'Current Price', 'th_tot_value': 'Total Value',
                 'th_profit': 'Profit / Loss', 'th_action': 'Action',
                 'empty_portfolio': 'Your portfolio is empty. You can add assets from the form below.',
                 'add_asset': 'Add New Asset',
@@ -448,7 +453,10 @@
                                         label += ': ';
                                     }
                                     if (context.parsed !== null) {
-                                        label += new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(context.parsed);
+                                        // Toplam değere göre yüzde hesapla
+                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        let percentage = ((context.parsed / total) * 100).toFixed(1) + '%';
+                                        label += new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(context.parsed) + ' (' + percentage + ')';
                                     }
                                     return label;
                                 }

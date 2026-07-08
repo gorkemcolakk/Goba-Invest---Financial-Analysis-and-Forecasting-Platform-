@@ -786,25 +786,34 @@ def portfolio():
         symbol = item.symbol
         current_rate = rate_dict.get(symbol, {}).get('rate', 0)
         
-        # TL Değeri hesapla
-        if current_rate > 0:
-            value_try = item.amount * current_rate
+        # 1. Determine the asset's current price in TRY
+        base_quote = SUPPORTED_CURRENCIES.get(symbol, {}).get('quote', 'TRY')
+        if base_quote == 'USD':
+            rate_in_try = current_rate * usd_try_rate
+        elif base_quote == 'EUR':
+            rate_in_try = current_rate * eur_try_rate
         else:
-            value_try = 0
+            rate_in_try = current_rate
             
-        # Alış maliyetini TL cinsinden hesapla
+        value_try = item.amount * rate_in_try if rate_in_try > 0 else 0
+        
+        # 2. Determine display values based on purchase_currency
         purchase_currency = getattr(item, 'purchase_currency', 'TRY')
-        if purchase_currency == 'TRY':
-            cost_try = item.purchase_price * item.amount
-        elif purchase_currency == 'USD':
-            cost_try = item.purchase_price * item.amount * usd_try_rate
-        elif purchase_currency == 'EUR':
-            cost_try = item.purchase_price * item.amount * eur_try_rate
+        if purchase_currency == 'USD' and usd_try_rate > 0:
+            display_rate = rate_in_try / usd_try_rate
+        elif purchase_currency == 'EUR' and eur_try_rate > 0:
+            display_rate = rate_in_try / eur_try_rate
         else:
-            cost_try = item.purchase_price * item.amount
+            display_rate = rate_in_try
             
-        profit = value_try - cost_try
-        profit_pct = (profit / cost_try * 100) if cost_try > 0 else 0
+        value_in_pc = item.amount * display_rate if display_rate > 0 else 0
+        cost_in_pc = item.amount * item.purchase_price
+        
+        profit_in_pc = value_in_pc - cost_in_pc
+        profit_pct = (profit_in_pc / cost_in_pc * 100) if cost_in_pc > 0 else 0
+        
+        currency_symbols = {'TRY': '₺', 'USD': '$', 'EUR': '€'}
+        pc_symbol = currency_symbols.get(purchase_currency, '₺')
         
         portfolio_data.append({
             'id': item.id,
@@ -813,9 +822,11 @@ def portfolio():
             'amount': item.amount,
             'purchase_price': item.purchase_price,
             'purchase_currency': purchase_currency,
-            'current_price': current_rate,
+            'pc_symbol': pc_symbol,
+            'current_price': display_rate,
+            'value_in_pc': value_in_pc,
             'value_try': value_try,
-            'profit': profit,
+            'profit': profit_in_pc,
             'profit_pct': profit_pct
         })
         
