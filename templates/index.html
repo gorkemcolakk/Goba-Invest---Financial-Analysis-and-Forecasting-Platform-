@@ -78,15 +78,60 @@
                     {% for t in ticker_data %}
                     <tr id="ticker-{{ t.id }}">
                         <td class="ticker-name">
-                            <span class="ticker-flag">
                                 {% if t.icon_type == 'usd' %}<img src="https://flagcdn.com/w40/us.png" width="24" height="16" alt="US" style="border-radius:2px;vertical-align:middle;">
                                 {% elif t.icon_type == 'eur' %}<img src="https://flagcdn.com/w40/eu.png" width="24" height="16" alt="EU" style="border-radius:2px;vertical-align:middle;">
                                 {% elif t.icon_type == 'gbp' %}<img src="https://flagcdn.com/w40/gb.png" width="24" height="16" alt="GB" style="border-radius:2px;vertical-align:middle;">
-                                {% elif t.icon_type == 'gold_ons' %}<span class="metal-dot gold-dot"></span>
-                                {% elif t.icon_type == 'gold_gram' %}<span class="metal-dot gold-dot"></span>
-                                {% elif t.icon_type == 'silver' %}<span class="metal-dot silver-dot"></span>
-                                {% elif t.icon_type == 'gram_gumus' %}<span class="metal-dot silver-dot"></span>
-                                {% elif t.icon_type in ['ceyrek','yarim','tam','cumhuriyet'] %}<span class="metal-dot gold-dot-sm"></span>
+                                {% elif t.icon_type == 'gold_ons' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
+                                    <circle cx="12" cy="12" r="10" fill="url(#goldGradOns)" stroke="#d35400" stroke-width="0.5"/>
+                                    <defs>
+                                        <linearGradient id="goldGradOns" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#ffeaa7"/>
+                                            <stop offset="100%" stop-color="#f1c40f"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                {% elif t.icon_type == 'gold_gram' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
+                                    <circle cx="12" cy="12" r="10" fill="#f39c12" stroke="#d35400" stroke-width="0.5"/>
+                                    <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1g</text>
+                                </svg>
+                                {% elif t.icon_type == 'silver' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
+                                    <circle cx="12" cy="12" r="10" fill="url(#silverGrad)" stroke="#7f8c8d" stroke-width="0.5"/>
+                                    <defs>
+                                        <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#f5f6fa"/>
+                                            <stop offset="100%" stop-color="#bdc3c7"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                {% elif t.icon_type == 'gram_gumus' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
+                                    <circle cx="12" cy="12" r="10" fill="#bdc3c7" stroke="#7f8c8d" stroke-width="0.5"/>
+                                    <text x="12" y="15.5" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1g</text>
+                                </svg>
+                                {% elif t.icon_type == 'ceyrek' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="#f1c40f" stroke-width="2"/>
+                                    <path d="M 12 12 L 12 3 A 9 9 0 0 1 21 12 Z" fill="#f39c12"/>
+                                </svg>
+                                {% elif t.icon_type == 'yarim' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="#f1c40f" stroke-width="2"/>
+                                    <path d="M 12 12 L 12 3 A 9 9 0 0 1 12 21 Z" fill="#f39c12"/>
+                                </svg>
+                                {% elif t.icon_type == 'tam' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
+                                    <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5"/>
+                                </svg>
+                                {% elif t.icon_type == 'cumhuriyet' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
+                                    <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5"/>
+                                    <!-- A simplified clean crescent and star -->
+                                    <path d="M 11.5 8 A 4 4 0 1 0 15 15.5 A 3.6 3.6 0 1 1 11.5 8" fill="#fff"/>
+                                    <polygon points="14.5,9.5 15.3,10.2 16.3,10 15.7,10.8 16.1,11.8 15.1,11.3 14.2,11.8 14.5,10.8 13.9,10 14.9,10.2" fill="#fff"/>
+                                </svg>
                                 {% else %}◆{% endif %}
                             </span>
                             <span>{{ t.name }}</span>
