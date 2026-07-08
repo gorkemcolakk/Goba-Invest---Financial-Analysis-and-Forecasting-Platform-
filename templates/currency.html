@@ -414,7 +414,7 @@
                         const oldRate = parseFloat(priceEl.innerText);
                         const newRate = parseFloat(item.rate);
                         if (oldRate !== newRate) {
-                            priceEl.innerText = newRate.toFixed({{ precision }});
+                            priceEl.innerText = newRate.toFixed({{ precision }}) + ' {{ info.symbol }}';
                             const targetEl = priceEl.closest('.current-price-hero') || priceEl;
                             targetEl.classList.remove('flash-up', 'flash-down');
                             void targetEl.offsetWidth;

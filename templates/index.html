@@ -481,7 +481,7 @@
                         const oldRate = parseFloat(rateEl.innerText);
                         const newRate = parseFloat(item.rate);
                         if (oldRate !== newRate) {
-                            rateEl.innerText = newRate.toFixed(item.precision || 4);
+                            rateEl.innerText = newRate.toFixed(item.precision || 4) + ' ' + (item.currency_symbol || '');
                             const cardEl = rateEl.closest('.glass-card') || rateEl;
                             cardEl.classList.remove('flash-up', 'flash-down');
                             void cardEl.offsetWidth;
