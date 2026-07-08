@@ -773,6 +773,9 @@ def portfolio():
     rates, _, update_time = rate_cache.get_all()
     rate_dict = {item['symbol']: item for item in rates}
     
+    usd_try_rate = rate_dict.get('USDTRY=X', {}).get('rate', 1.0)
+    eur_try_rate = rate_dict.get('EURTRY=X', {}).get('rate', 1.0)
+    
     items = PortfolioItem.query.filter_by(user_id=current_user.id).all()
     
     portfolio_data = []
@@ -808,8 +811,55 @@ def portfolio():
     return render_template('portfolio.html', 
                            items=portfolio_data, 
                            total_value=total_value_try,
+                           usd_rate=usd_try_rate,
+                           eur_rate=eur_try_rate,
                            supported=SUPPORTED_CURRENCIES,
                            update_time=update_time)
+
+@app.route('/profile')
+@login_required
+def profile():
+    # Calculate total wealth for the profile page
+    rates, _, _ = rate_cache.get_all()
+    rate_dict = {item['symbol']: item for item in rates}
+    
+    usd_try_rate = rate_dict.get('USDTRY=X', {}).get('rate', 1.0)
+    eur_try_rate = rate_dict.get('EURTRY=X', {}).get('rate', 1.0)
+    
+    items = PortfolioItem.query.filter_by(user_id=current_user.id).all()
+    total_value_try = 0.0
+    
+    for item in items:
+        symbol = item.symbol
+        current_rate = rate_dict.get(symbol, {}).get('rate', 0)
+        if current_rate > 0:
+            total_value_try += item.amount * current_rate
+            
+    return render_template('profile.html', 
+                           total_value=total_value_try,
+                           usd_rate=usd_try_rate,
+                           eur_rate=eur_try_rate)
+
+@app.route('/api/change-password', methods=['POST'])
+@login_required
+def change_password():
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    
+    if not current_password or not new_password or not confirm_password:
+        return jsonify({'error': 'Lütfen tüm alanları doldurun.'}), 400
+        
+    if new_password != confirm_password:
+        return jsonify({'error': 'Yeni şifreler eşleşmiyor.'}), 400
+        
+    if not check_password_hash(current_user.password_hash, current_password):
+        return jsonify({'error': 'Mevcut şifreniz yanlış.'}), 400
+        
+    current_user.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+    
+    return jsonify({'success': True})
 
 @app.route('/api/portfolio', methods=['POST', 'DELETE'])
 @login_required

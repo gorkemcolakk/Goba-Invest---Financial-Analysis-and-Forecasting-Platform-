@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<script>
+    (function() {
+        const theme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        const lang = localStorage.getItem('lang') || 'tr';
+        document.documentElement.setAttribute('lang', lang);
+    })();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilim | GOBA INVEST</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .total-value-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+        .total-value-card h2 {
+            font-size: 3rem;
+            margin: 0.5rem 0;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--bg-main);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+        .btn-primary {
+            padding: 0.8rem;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav-container">
+            <a href="/" class="nav-logo">
+                <div class="logo-symbol"><i class="fa-solid fa-chart-line"></i></div>
+                <span class="logo-text">GOBA<span>INVEST</span></span>
+            </a>
+            <nav style="display: flex; align-items: center;">
+                <a href="/" data-i18n="nav_home"><i class="fa-solid fa-house"></i> Anasayfa</a>
+                <a href="/news" data-i18n="nav_news"><i class="fa-solid fa-newspaper"></i> Haberler</a>
+                <a href="/portfolio" data-i18n="nav_portfolio"><i class="fa-solid fa-wallet"></i> Portföyüm</a>
+                <a href="/profile" class="nav-active" data-i18n="nav_profile"><i class="fa-solid fa-user"></i> Profilim</a>
+                <a href="/contact" data-i18n="nav_contact"><i class="fa-solid fa-envelope"></i> İletişim</a>
+                
+                <a href="/logout" data-i18n="nav_logout" style="color: #ef4444;"><i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap</a>
+
+                <div class="lang-switch" id="lang-toggle">
+                    <i class="fa-solid fa-globe"></i>
+                    <span id="lang-text">TR</span>
+                </div>
+
+                <div class="theme-switch" id="theme-toggle" title="Tema Değiştir">
+                    <i class="fa-solid fa-sun"></i>
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container profile-container" style="padding-top: 2rem; min-height: calc(100vh - 80px);">
+        <div style="margin-bottom: 2rem; text-align: center;">
+            <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-user-circle gradient-text"></i> <span data-i18n="profile_title">Profilim</span></h1>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;"><span data-i18n="welcome">Hoş geldin,</span> {{ current_user.username }}</p>
+        </div>
+
+        <div class="total-value-card fade-in">
+            <p style="color: var(--text-secondary); font-size: 1.2rem;" data-i18n="total_wealth">Toplam Portföy Değeri</p>
+            <div style="display: flex; justify-content: center; align-items: baseline; gap: 1rem; margin: 0.5rem 0;">
+                <h2 id="total-wealth-display" data-try="{{ total_value }}" data-usd="{{ total_value / usd_rate }}" data-eur="{{ total_value / eur_rate }}">
+                    {{ "{:,.2f}".format(total_value) }} ₺
+                </h2>
+                <select id="wealth-currency" class="form-control" style="width: auto; padding: 0.5rem; background: rgba(255,255,255,0.05); color: inherit;">
+                    <option value="TRY" style="color: black;">TRY (₺)</option>
+                    <option value="USD" style="color: black;">USD ($)</option>
+                    <option value="EUR" style="color: black;">EUR (€)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="glass-card fade-in" style="animation-delay: 0.1s;">
+            <h3 style="margin-bottom: 1.5rem;" data-i18n="change_password">Şifre Değiştir</h3>
+            <div id="alert-box" class="alert"></div>
+            <form id="password-form">
+                <input type="hidden" id="csrf_token" name="_csrf_token" value="{{ g.csrf_token }}">
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);" data-i18n="current_password">Mevcut Şifre</label>
+                    <input type="password" id="current_password" name="current_password" class="form-control" required>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);" data-i18n="new_password">Yeni Şifre</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control" required>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);" data-i18n="confirm_password">Yeni Şifre (Tekrar)</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-primary" data-i18n="btn_update_password">Şifreyi Güncelle</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script>
+        initTheme();
+        
+        const translations = {
+            'tr': {
+                'nav_home': '<i class="fa-solid fa-house"></i> Anasayfa',
+                'nav_news': '<i class="fa-solid fa-newspaper"></i> Haberler',
+                'nav_portfolio': '<i class="fa-solid fa-wallet"></i> Portföyüm',
+                'nav_profile': '<i class="fa-solid fa-user"></i> Profilim',
+                'nav_contact': '<i class="fa-solid fa-envelope"></i> İletişim',
+                'nav_logout': '<i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap',
+                'profile_title': 'Profilim',
+                'welcome': 'Hoş geldin,',
+                'total_wealth': 'Toplam Portföy Değeri',
+                'change_password': 'Şifre Değiştir',
+                'current_password': 'Mevcut Şifre',
+                'new_password': 'Yeni Şifre',
+                'confirm_password': 'Yeni Şifre (Tekrar)',
+                'btn_update_password': 'Şifreyi Güncelle'
+            },
+            'en': {
+                'nav_home': '<i class="fa-solid fa-house"></i> Home',
+                'nav_news': '<i class="fa-solid fa-newspaper"></i> News',
+                'nav_portfolio': '<i class="fa-solid fa-wallet"></i> Portfolio',
+                'nav_profile': '<i class="fa-solid fa-user"></i> Profile',
+                'nav_contact': '<i class="fa-solid fa-envelope"></i> Contact',
+                'nav_logout': '<i class="fa-solid fa-sign-out-alt"></i> Logout',
+                'profile_title': 'My Profile',
+                'welcome': 'Welcome,',
+                'total_wealth': 'Total Portfolio Value',
+                'change_password': 'Change Password',
+                'current_password': 'Current Password',
+                'new_password': 'New Password',
+                'confirm_password': 'Confirm New Password',
+                'btn_update_password': 'Update Password'
+            }
+        };
+        initLangToggle(() => translations);
+
+        // Currency Toggle Logic
+        const currencySelect = document.getElementById('wealth-currency');
+        const wealthDisplay = document.getElementById('total-wealth-display');
+        
+        if (currencySelect && wealthDisplay) {
+            currencySelect.addEventListener('change', (e) => {
+                const currency = e.target.value;
+                const value = parseFloat(wealthDisplay.getAttribute('data-' + currency.toLowerCase()));
+                const formatter = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: currency });
+                wealthDisplay.innerText = formatter.format(value);
+            });
+        }
+
+        // Change Password Logic
+        document.getElementById('password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const alertBox = document.getElementById('alert-box');
+            
+            try {
+                const response = await fetch('/api/change-password', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                alertBox.style.display = 'block';
+                
+                if (result.success) {
+                    alertBox.className = 'alert alert-success';
+                    alertBox.innerText = 'Şifreniz başarıyla güncellendi.';
+                    e.target.reset();
+                } else {
+                    alertBox.className = 'alert alert-error';
+                    alertBox.innerText = result.error || 'Bir hata oluştu.';
+                }
+            } catch (err) {
+                alertBox.style.display = 'block';
+                alertBox.className = 'alert alert-error';
+                alertBox.innerText = 'Bağlantı hatası.';
+            }
+        });
+    </script>
+</body>
+</html>
