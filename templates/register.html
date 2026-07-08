@@ -116,7 +116,7 @@
         }
     </style>
 </head>
-<body class="light-mode">
+<body>
     <div class="auth-topbar">
         <a href="/" class="back-btn" data-i18n="back_btn"><i class="fa-solid fa-arrow-left"></i> Piyasaya Dön</a>
         <div style="display: flex; gap: 1rem;">
@@ -171,18 +171,18 @@
     <script>
         // Tema Yönetimi
         const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-        const icon = themeToggle.querySelector('i');
+        const html = document.documentElement;
 
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            body.className = 'dark-mode';
+        if (savedTheme === 'light' || (!savedTheme && !window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.setAttribute('data-theme', 'light');
         }
 
         themeToggle.addEventListener('click', () => {
-            const isDark = body.classList.contains('dark-mode');
-            body.className = isDark ? 'light-mode' : 'dark-mode';
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+            const current = html.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
         });
 
         // Dil Yönetimi
