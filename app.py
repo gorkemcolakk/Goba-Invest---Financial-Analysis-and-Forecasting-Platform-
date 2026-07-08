@@ -807,7 +807,7 @@ def portfolio():
             display_rate = rate_in_try
             
         value_in_pc = item.amount * display_rate if display_rate > 0 else 0
-        cost_in_pc = item.amount * item.purchase_price
+        cost_in_pc = item.purchase_price
         
         profit_in_pc = value_in_pc - cost_in_pc
         profit_pct = (profit_in_pc / cost_in_pc * 100) if cost_in_pc > 0 else 0

@@ -190,10 +190,31 @@
                                     {% set flag_val = supported.get(item.symbol, {}).get('flag') %}
                                     {% if flag_val in ['us', 'eu', 'gb', 'tr'] %}
                                         <img src="https://flagcdn.com/w40/{{ flag_val }}.png" width="20" style="vertical-align: middle; margin-right: 5px; border-radius: 2px;">
-                                    {% elif flag_val in ['gold_ons', 'gold_gram'] %}
-                                        <i class="fa-solid fa-coins" style="margin-right: 5px; color: #f59e0b;"></i>
+                                    {% elif flag_val == 'gold_ons' %}
+                                        <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                                            <circle cx="12" cy="12" r="10" fill="url(#goldGradOns)" stroke="#d35400" stroke-width="0.5" />
+                                            <defs>
+                                                <linearGradient id="goldGradOns" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stop-color="#ffeaa7" />
+                                                    <stop offset="100%" stop-color="#f1c40f" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                    {% elif flag_val == 'gold_gram' %}
+                                        <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                                            <circle cx="12" cy="12" r="10" fill="#f39c12" stroke="#d35400" stroke-width="0.5" />
+                                            <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1g</text>
+                                        </svg>
                                     {% elif flag_val == 'silver' %}
-                                        <i class="fa-solid fa-coins" style="margin-right: 5px; color: #94a3b8;"></i>
+                                        <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                                            <circle cx="12" cy="12" r="10" fill="url(#silverGrad)" stroke="#7f8c8d" stroke-width="0.5" />
+                                            <defs>
+                                                <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stop-color="#f5f6fa" />
+                                                    <stop offset="100%" stop-color="#bdc3c7" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
                                     {% else %}
                                         <i class="fa-solid fa-money-bill-transfer" style="margin-right: 5px; color: #10b981;"></i>
                                     {% endif %}
@@ -247,7 +268,7 @@
                     </div>
                     
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_buy_price">Alış Fiyatı (Birim Başına)</label>
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_buy_price">Toplam Ödenen Tutar</label>
                         <div style="display: flex; gap: 0.5rem;">
                             <input type="number" step="0.01" min="0" id="asset-price" name="purchase_price" class="form-control" placeholder="32.50" required>
                             <select id="asset-purchase-currency" name="purchase_currency" class="form-control" style="width: auto; background: var(--bg-main); color: var(--text-primary);">
@@ -275,6 +296,8 @@
         </div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script>
         const translations = {
@@ -293,7 +316,7 @@
                 'th_profit': 'Kar / Zarar', 'th_action': 'İşlem',
                 'empty_portfolio': 'Portföyünüz henüz boş. Aşağıdaki formdan varlık ekleyebilirsiniz.',
                 'add_asset': 'Yeni Varlık Ekle',
-                'asset_type': 'Varlık Tipi', 'asset_amount': 'Miktar', 'asset_buy_price': 'Alış Fiyatı (Birim Başına)',
+                'asset_type': 'Varlık Tipi', 'asset_amount': 'Miktar', 'asset_buy_price': 'Toplam Ödenen Tutar',
                 'btn_add_portfolio': 'Portföye Ekle',
                 'distribution': 'Dağılım'
             },
@@ -312,7 +335,7 @@
                 'th_profit': 'Profit / Loss', 'th_action': 'Action',
                 'empty_portfolio': 'Your portfolio is empty. You can add assets from the form below.',
                 'add_asset': 'Add New Asset',
-                'asset_type': 'Asset Type', 'asset_amount': 'Amount', 'asset_buy_price': 'Buy Price (Per Unit)',
+                'asset_type': 'Asset Type', 'asset_amount': 'Amount', 'asset_buy_price': 'Total Paid Amount',
                 'btn_add_portfolio': 'Add to Portfolio',
                 'distribution': 'Distribution'
             }
@@ -422,6 +445,8 @@
                 portfolioChart.destroy();
             }
             
+            Chart.register(ChartDataLabels);
+            
             portfolioChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -436,6 +461,18 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        datalabels: {
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            },
+                            formatter: (value, ctx) => {
+                                let total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                let percentage = (value / total * 100).toFixed(1) + '%';
+                                return percentage;
+                            }
+                        },
                         legend: {
                             position: 'bottom',
                             labels: {
