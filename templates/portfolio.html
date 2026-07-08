@@ -297,7 +297,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script>
         const translations = {
@@ -445,7 +444,57 @@
                 portfolioChart.destroy();
             }
             
-            Chart.register(ChartDataLabels);
+            // Özel Eklenti: Çizgilerle yüzdelikleri dışarıda göster
+            const outLabelsPlugin = {
+                id: 'outLabels',
+                afterDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    const dataset = chart.data.datasets[0];
+                    const meta = chart.getDatasetMeta(0);
+                    const data = dataset.data;
+                    const total = data.reduce((a, b) => a + b, 0);
+                    
+                    if (total === 0) return;
+                    
+                    ctx.save();
+                    meta.data.forEach((arc, i) => {
+                        const val = data[i];
+                        const percentage = (val / total) * 100;
+                        if (percentage < 1.5) return; // Çok küçük dilimleri gizle
+                        
+                        const angle = (arc.startAngle + arc.endAngle) / 2;
+                        const radius = arc.outerRadius;
+                        const x = arc.x;
+                        const y = arc.y;
+                        
+                        const edgeX = x + Math.cos(angle) * radius;
+                        const edgeY = y + Math.sin(angle) * radius;
+                        
+                        const lineLen = 25;
+                        const outX = x + Math.cos(angle) * (radius + lineLen);
+                        const outY = y + Math.sin(angle) * (radius + lineLen);
+                        
+                        const isRight = Math.cos(angle) >= 0;
+                        const endX = isRight ? outX + 15 : outX - 15;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(edgeX, edgeY);
+                        ctx.lineTo(outX, outY);
+                        ctx.lineTo(endX, outY);
+                        ctx.strokeStyle = dataset.backgroundColor[i];
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = textColor;
+                        ctx.font = 'bold 13px "Inter", sans-serif';
+                        ctx.textAlign = isRight ? 'left' : 'right';
+                        ctx.textBaseline = 'middle';
+                        
+                        ctx.fillText(percentage.toFixed(1) + '%', isRight ? endX + 5 : endX - 5, outY);
+                    });
+                    ctx.restore();
+                }
+            };
             
             portfolioChart = new Chart(ctx, {
                 type: 'doughnut',
@@ -457,22 +506,14 @@
                         borderWidth: 0
                     }]
                 },
+                plugins: [outLabelsPlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: 45 // Dışarıdaki yazılar için boşluk
+                    },
                     plugins: {
-                        datalabels: {
-                            color: '#fff',
-                            font: {
-                                weight: 'bold',
-                                size: 12
-                            },
-                            formatter: (value, ctx) => {
-                                let total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = (value / total * 100).toFixed(1) + '%';
-                                return percentage;
-                            }
-                        },
                         legend: {
                             position: 'bottom',
                             labels: {
