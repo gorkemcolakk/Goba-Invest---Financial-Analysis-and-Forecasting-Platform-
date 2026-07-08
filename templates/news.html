@@ -12,8 +12,197 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finansal Haberler | GOBA INVEST</title>
+    <meta name="description" content="Küresel piyasalardan anlık finans haberleri, döviz ve emtia gelişmeleri. GOBA INVEST haber merkezi.">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ── Haber Sayfası Ek Stilleri ────────────────────────────────────── */
+        .news-meta-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .news-meta-bar .meta-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .news-meta-bar .meta-count {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: var(--accent-secondary);
+        }
+        .btn-refresh {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 1.2rem;
+            border: 1px solid var(--accent-secondary);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--accent-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-refresh:hover {
+            background: var(--accent-secondary);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .btn-refresh.loading i {
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.4rem;
+        }
+        .news-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.6rem;
+            border-radius: 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+        .news-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.22s ease;
+        }
+        .news-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); border-color: var(--accent-secondary); }
+        .news-card:hover::before { opacity: 1; }
+        .news-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.9rem;
+        }
+        .news-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.45;
+            margin: 0 0 0.65rem 0;
+            color: var(--text-primary);
+        }
+        .news-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0 0 1rem 0;
+            flex-grow: 1;
+        }
+        .news-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 0.85rem;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+        .news-source-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .news-source-badge i { font-size: 0.7rem; }
+        .news-read-link {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--accent-secondary);
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .news-read-link:hover { opacity: 0.75; }
+
+        /* Skeleton Loading */
+        .skeleton-card {
+            border-radius: 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 1.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .skeleton-line {
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--glass-bg) 25%, var(--glass-border) 50%, var(--glass-bg) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Boş durum kartı */
+        .news-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+        .news-empty i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+        .news-empty p { font-size: 1rem; }
+
+        /* Filtre butonları */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .filter-btn {
+            padding: 0.35rem 1rem;
+            border-radius: 999px;
+            border: 1px solid var(--glass-border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent-secondary);
+            border-color: var(--accent-secondary);
+            color: #fff;
+        }
+
+        /* Animate in */
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .news-card { animation: fadeSlideIn 0.35s ease both; }
+    </style>
 </head>
 <body>
     <header>
@@ -48,71 +237,92 @@
             <p data-i18n="news_subtitle">Küresel piyasalardan en sıcak haberler, derinlemesine analizler ve döviz dünyasındaki kritik gelişmeler.</p>
         </section>
 
-        <div class="bento-grid" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));">
-            <div class="glass-card news-card">
-                <span class="rate-badge rate-up" style="width: fit-content; margin-bottom: 1rem;" data-i18n="tag_analysis">Analiz</span>
-                <h3 data-i18n="news_1_title">JP Morgan: Dolar 2025'te Zayıf Kalabilir</h3>
-                <p data-i18n="news_1_text">Gelişmekte olan piyasalar için yeni fırsatlar doğuyor. Yatırımcılar doların değer kaybıyla birlikte risk iştahını artırabilir.</p>
-                <div class="card-footer" style="padding-top: 1rem;">
-                    <span>31 Mayıs 2025</span>
-                    <span style="color: var(--accent-secondary);" data-i18n="news_read_more">Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem;"></i></span>
-                </div>
+        <!-- Meta Bar -->
+        <div class="news-meta-bar">
+            <div class="meta-left">
+                <span class="meta-count">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <span id="article-count">{{ article_count }}</span>
+                    <span data-i18n="news_article_count_label"> haber bulundu</span>
+                </span>
+                <span>
+                    <i class="fa-regular fa-clock" style="margin-right:4px;"></i>
+                    <span data-i18n="news_last_updated_label">Son güncelleme:</span>
+                    <strong id="news-last-updated"> {{ last_updated }}</strong>
+                </span>
             </div>
-
-            <div class="glass-card news-card">
-                <span class="rate-badge rate-down" style="width: fit-content; margin-bottom: 1rem;" data-i18n="tag_economy">Ekonomi</span>
-                <h3 data-i18n="news_2_title">Euro Bölgesi: Enflasyon Yavaşlıyor</h3>
-                <p data-i18n="news_2_text">ECB faiz artırımlarına ara verebilir mi? Bu gelişme Euro değerinde dalgalanmalara yol açabilir.</p>
-                <div class="card-footer" style="padding-top: 1rem;">
-                    <span>30 Mayıs 2025</span>
-                    <span style="color: var(--accent-secondary);" data-i18n="news_read_more">Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem;"></i></span>
-                </div>
-            </div>
-
-            <div class="glass-card news-card">
-                <span class="rate-badge rate-down" style="width: fit-content; margin-bottom: 1rem;" data-i18n="tag_report">Rapor</span>
-                <h3 data-i18n="news_3_title">İngiltere'de İşsizlik Verileri Beklentileri Aştı</h3>
-                <p data-i18n="news_3_text">İşgücü piyasasının zayıflamasıyla Sterlin (GBP) üzerindeki baskı artıyor. Ekonomistler temkinli.</p>
-                <div class="card-footer" style="padding-top: 1rem;">
-                    <span>29 Mayıs 2025</span>
-                    <span style="color: var(--accent-secondary);" data-i18n="news_read_more">Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem;"></i></span>
-                </div>
-            </div>
-
-            <div class="glass-card news-card">
-                <span class="rate-badge rate-up" style="width: fit-content; margin-bottom: 1rem;" data-i18n="tag_local">Yerel</span>
-                <h3 data-i18n="news_4_title">Türkiye: Cari Açıkta Keskin Düşüş</h3>
-                <p data-i18n="news_4_text">Cari açığın daralması Türk Lirası için pozitif bir sinyal olarak algılanıyor. Ekonomistler iyimser tarafta.</p>
-                <div class="card-footer" style="padding-top: 1rem;">
-                    <span>28 Mayıs 2025</span>
-                    <span style="color: var(--accent-secondary);" data-i18n="news_read_more">Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem;"></i></span>
-                </div>
-            </div>
-
-            <div class="glass-card news-card">
-                <span class="rate-badge rate-up" style="width: fit-content; margin-bottom: 1rem;" data-i18n="tag_global">Global</span>
-                <h3 data-i18n="news_5_title">Eurozone Endüstriyel Üretim Verileri Güçlü</h3>
-                <p data-i18n="news_5_text">Üretimdeki artış, Avrupa ekonomisinin toparlanma sürecinde olduğunu gösteriyor. Euro dirençli kalabilir.</p>
-                <div class="card-footer" style="padding-top: 1rem;">
-                    <span>24 Mayıs 2025</span>
-                    <span style="color: var(--accent-secondary);" data-i18n="news_read_more">Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem;"></i></span>
-                </div>
-            </div>
+            <button class="btn-refresh" id="refresh-btn" onclick="refreshNews()">
+                <i class="fa-solid fa-rotate-right" id="refresh-icon"></i>
+                <span data-i18n="news_refresh">Yenile</span>
+            </button>
         </div>
 
-        <div style="text-align: center; margin-top: 4rem;">
+        <!-- Filtre Butonları -->
+        <div class="filter-bar" id="filter-bar">
+            <button class="filter-btn active" data-filter="all" onclick="filterNews('all', this)" data-i18n-filter="filter_all">Tümü</button>
+            <button class="filter-btn" data-filter="Döviz" onclick="filterNews('Döviz', this)">Döviz</button>
+            <button class="filter-btn" data-filter="Emtia" onclick="filterNews('Emtia', this)">Emtia</button>
+            <button class="filter-btn" data-filter="Ekonomi" onclick="filterNews('Ekonomi', this)">Ekonomi</button>
+            <button class="filter-btn" data-filter="Merkez Bankası" onclick="filterNews('Merkez Bankası', this)">Merkez Bankası</button>
+            <button class="filter-btn" data-filter="Piyasalar" onclick="filterNews('Piyasalar', this)">Piyasalar</button>
+            <button class="filter-btn" data-filter="Türkiye" onclick="filterNews('Türkiye', this)">Türkiye</button>
+            <button class="filter-btn" data-filter="Analiz" onclick="filterNews('Analiz', this)">Analiz</button>
+            <button class="filter-btn" data-filter="Global" onclick="filterNews('Global', this)">Global</button>
+        </div>
+
+        <!-- Haber Grid -->
+        <div class="news-grid" id="news-grid">
+            {% if articles %}
+                {% for article in articles %}
+                <a href="{{ article.link }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="news-card"
+                   data-tag="{{ article.tag }}"
+                   style="animation-delay: {{ loop.index0 * 0.04 }}s;">
+                    <div>
+                        <div class="news-card-header">
+                            <span class="rate-badge {{ article.tag_color }}"
+                                  style="width: fit-content;">{{ article.tag }}</span>
+                            <span style="font-size:0.75rem; color:var(--text-secondary);">
+                                <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>
+                                <span class="news-date-tr">{{ article.date_tr }}</span>
+                                <span class="news-date-en" style="display:none;">{{ article.date_en }}</span>
+                            </span>
+                        </div>
+                        <h3>{{ article.title }}</h3>
+                        <p>{{ article.summary if article.summary else '' }}</p>
+                    </div>
+                    <div class="news-card-footer">
+                        <span class="news-source-badge">
+                            <i class="fa-solid fa-circle-dot" style="color:var(--accent-secondary);"></i>
+                            {{ article.source }}
+                        </span>
+                        <span class="news-read-link" data-i18n="news_read_more">
+                            Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.65rem;"></i>
+                        </span>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="news-empty">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                    <p data-i18n="news_empty">Şu anda haber alınamıyor. Lütfen daha sonra tekrar deneyiniz.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem; margin-bottom: 1rem;">
             <a href="/" data-i18n="back_to_home" class="btn btn-primary">Anasayfaya Dön</a>
         </div>
     </main>
 
     <footer>
-        <p data-i18n="footer_text">&copy; 2024 GOBA INVEST. Tüm Hakları Saklıdır.</p>
+        <p data-i18n="footer_text">&copy; 2026 GOBA INVEST. Tüm Hakları Saklıdır.</p>
     </footer>
+
     <script>
-        // Theme Toggle Logic
-        const themeToggle = document.getElementById('theme-toggle');
-        const html = document.documentElement;
-        // Language Logic
+        // ── Çeviri Tablosu ────────────────────────────────────────────────────
         const translations = {
             'tr': {
                 'nav_home': '<i class="fa-solid fa-house"></i> Anasayfa',
@@ -120,20 +330,13 @@
                 'nav_contact': '<i class="fa-solid fa-envelope"></i> İletişim',
                 'news_title': 'Piyasa Gündemi',
                 'news_subtitle': 'Küresel piyasalardan en sıcak haberler, derinlemesine analizler ve döviz dünyasındaki kritik gelişmeler.',
-                'news_read_more': 'Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem;"></i>',
-                'tag_analysis': 'Analiz', 'tag_economy': 'Ekonomi', 'tag_report': 'Rapor', 'tag_local': 'Yerel', 'tag_global': 'Global',
-                'news_1_title': 'JP Morgan: Dolar 2025\'te Zayıf Kalabilir',
-                'news_1_text': 'Gelişmekte olan piyasalar için yeni fırsatlar doğuyor. Yatırımcılar doların değer kaybıyla birlikte risk iştahını artırabilir.',
-                'news_2_title': 'Euro Bölgesi: Enflasyon Yavaşlıyor',
-                'news_2_text': 'ECB faiz artırımlarına ara verebilir mi? Bu gelişme Euro değerinde dalgalanmalara yol açabilir.',
-                'news_3_title': 'İngiltere\'de İşsizlik Verileri Beklentileri Aştı',
-                'news_3_text': 'İşgücü piyasasının zayıflamasıyla Sterlin (GBP) üzerindeki baskı artıyor. Ekonomistler temkinli.',
-                'news_4_title': 'Türkiye: Cari Açıkta Keskin Düşüş',
-                'news_4_text': 'Cari açığın daralması Türk Lirası için pozitif bir sinyal olarak algılanıyor. Ekonomistler iyimser tarafta.',
-                'news_5_title': 'Eurozone Endüstriyel Üretim Verileri Güçlü',
-                'news_5_text': 'Üretimdeki artış, Avrupa ekonomisinin toparlanma sürecinde olduğunu gösteriyor. Euro dirençli kalabilir.',
+                'news_read_more': 'Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.65rem;"></i>',
+                'news_refresh': 'Yenile',
+                'news_last_updated_label': 'Son güncelleme:',
+                'news_article_count_label': ' haber bulundu',
+                'news_empty': 'Şu anda haber alınamıyor. Lütfen daha sonra tekrar deneyiniz.',
                 'back_to_home': 'Anasayfaya Dön',
-                'footer_text': '&copy; 2024 GOBA INVEST. Tüm Hakları Saklıdır.'
+                'footer_text': '&copy; 2026 GOBA INVEST. Tüm Hakları Saklıdır.'
             },
             'en': {
                 'nav_home': '<i class="fa-solid fa-house"></i> Home',
@@ -141,26 +344,22 @@
                 'nav_contact': '<i class="fa-solid fa-envelope"></i> Contact',
                 'news_title': 'Market Updates',
                 'news_subtitle': 'Latest news from global markets, in-depth analysis, and critical forex developments.',
-                'news_read_more': 'Read More <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem;"></i>',
-                'tag_analysis': 'Analysis', 'tag_economy': 'Economy', 'tag_report': 'Report', 'tag_local': 'Local', 'tag_global': 'Global',
-                'news_1_title': 'JP Morgan: Dollar May Remain Weak in 2025',
-                'news_1_text': 'New opportunities are emerging for emerging markets. Investors may increase risk appetite as the dollar loses value.',
-                'news_2_title': 'Eurozone: Inflation Slowing Down',
-                'news_2_text': 'Could the ECB pause interest rate hikes? This development could lead to fluctuations in the value of the Euro.',
-                'news_3_title': 'UK Unemployment Data Exceeds Expectations',
-                'news_3_text': 'Pressure on the Sterling (GBP) is increasing as the labor market weakens. Economists are cautious.',
-                'news_4_title': 'Turkey: Sharp Decline in Current Account Deficit',
-                'news_4_text': 'The narrowing of the current account deficit is perceived as a positive signal for the Turkish Lira. Economists are on the optimistic side.',
-                'news_5_title': 'Eurozone Industrial Production Data Strong',
-                'news_5_text': 'The increase in production shows that the European economy is in a recovery process. The Euro could remain resilient.',
+                'news_read_more': 'Read More <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.65rem;"></i>',
+                'news_refresh': 'Refresh',
+                'news_last_updated_label': 'Last updated:',
+                'news_article_count_label': ' articles found',
+                'news_empty': 'News is currently unavailable. Please try again later.',
                 'back_to_home': 'Back to Home',
-                'footer_text': '&copy; 2024 GOBA INVEST. All Rights Reserved.'
+                'footer_text': '&copy; 2026 GOBA INVEST. All Rights Reserved.'
             }
         };
+
+        // ── Dil Yönetimi ──────────────────────────────────────────────────────
+        const html = document.documentElement;
         const langToggle = document.getElementById('lang-toggle');
         const langText = document.getElementById('lang-text');
+
         function updateLanguage(lang) {
-            console.log("Updating language in News to:", lang);
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
@@ -170,37 +369,134 @@
             langText.innerText = lang.toUpperCase();
             localStorage.setItem('lang', lang);
             html.setAttribute('lang', lang);
+
+            // Haber tarihlerini dile göre göster/gizle
+            document.querySelectorAll('.news-date-tr').forEach(el => {
+                el.style.display = lang === 'tr' ? 'inline' : 'none';
+            });
+            document.querySelectorAll('.news-date-en').forEach(el => {
+                el.style.display = lang === 'en' ? 'inline' : 'none';
+            });
         }
+
         langToggle.addEventListener('click', () => {
             const currentLang = html.getAttribute('lang') || 'tr';
-            const newLang = currentLang === 'tr' ? 'en' : 'tr';
-            console.log("Switching language to:", newLang);
-            updateLanguage(newLang);
+            updateLanguage(currentLang === 'tr' ? 'en' : 'tr');
         });
 
+        // ── Tema ──────────────────────────────────────────────────────────────
+        const themeToggle = document.getElementById('theme-toggle');
         themeToggle.addEventListener('click', () => {
-            console.log("Theme click detected");
             const currentTheme = html.getAttribute('data-theme') || 'dark';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            console.log("Switching theme to:", newTheme);
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
         });
 
-        const savedLang = localStorage.getItem('lang') || 'tr';
-        console.log("Initializing News Language:", savedLang);
-        updateLanguage(savedLang);
-
-        // Live Clock logic
+        // ── Saat ─────────────────────────────────────────────────────────────
         function updateClock() {
             const clockEl = document.querySelector('#live-clock span');
-            if (clockEl) {
-                const now = new Date();
-                clockEl.textContent = now.toLocaleTimeString('tr-TR', { hour12: false });
-            }
+            if (clockEl) clockEl.textContent = new Date().toLocaleTimeString('tr-TR', { hour12: false });
         }
         setInterval(updateClock, 1000);
         updateClock();
+
+        // ── Filtre ───────────────────────────────────────────────────────────
+        function filterNews(tag, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            const cards = document.querySelectorAll('#news-grid .news-card');
+            cards.forEach(card => {
+                if (tag === 'all' || card.dataset.tag === tag) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // ── Yenile Butonu ────────────────────────────────────────────────────
+        function refreshNews() {
+            const btn = document.getElementById('refresh-btn');
+            const icon = document.getElementById('refresh-icon');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            fetch('/api/news?force=1')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.articles && data.articles.length > 0) {
+                        rebuildGrid(data.articles);
+                        document.getElementById('article-count').textContent = data.articles.length;
+                        if (data.last_updated) {
+                            const dt = new Date(data.last_updated);
+                            document.getElementById('news-last-updated').textContent =
+                                ' ' + dt.toLocaleDateString('tr-TR') + ' ' + dt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                        }
+                    }
+                })
+                .catch(err => console.error('News refresh error:', err))
+                .finally(() => {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    // Aktif filtre var mı bak
+                    const activeFilter = document.querySelector('.filter-btn.active');
+                    if (activeFilter) filterNews(activeFilter.dataset.filter, activeFilter);
+                });
+        }
+
+        // ── Grid Yeniden Oluştur ─────────────────────────────────────────────
+        function rebuildGrid(articles) {
+            const grid = document.getElementById('news-grid');
+            const lang = html.getAttribute('lang') || 'tr';
+            grid.innerHTML = '';
+
+            articles.forEach((a, i) => {
+                const card = document.createElement('a');
+                card.href = a.link;
+                card.target = '_blank';
+                card.rel = 'noopener noreferrer';
+                card.className = 'news-card';
+                card.dataset.tag = a.tag;
+                card.style.animationDelay = `${i * 0.04}s`;
+
+                const tagColorClass = a.tag_color || 'rate-down';
+                const dateDisplay = lang === 'tr' ? a.date_tr : a.date_en;
+                const dateTr = a.date_tr;
+                const dateEn = a.date_en;
+                const readMoreTr = 'Devamını Oku <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.65rem;"></i>';
+                const readMoreEn = 'Read More <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.65rem;"></i>';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="news-card-header">
+                            <span class="rate-badge ${tagColorClass}" style="width:fit-content;">${a.tag}</span>
+                            <span style="font-size:0.75rem; color:var(--text-secondary);">
+                                <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>
+                                <span class="news-date-tr" style="display:${lang === 'tr' ? 'inline' : 'none'};">${dateTr}</span>
+                                <span class="news-date-en" style="display:${lang === 'en' ? 'inline' : 'none'};">${dateEn}</span>
+                            </span>
+                        </div>
+                        <h3>${a.title}</h3>
+                        <p>${a.summary || ''}</p>
+                    </div>
+                    <div class="news-card-footer">
+                        <span class="news-source-badge">
+                            <i class="fa-solid fa-circle-dot" style="color:var(--accent-secondary);"></i>
+                            ${a.source}
+                        </span>
+                        <span class="news-read-link" data-i18n="news_read_more">
+                            ${lang === 'tr' ? readMoreTr : readMoreEn}
+                        </span>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        // ── Başlangıç ────────────────────────────────────────────────────────
+        const savedLang = localStorage.getItem('lang') || 'tr';
+        updateLanguage(savedLang);
     </script>
 </body>
 </html>

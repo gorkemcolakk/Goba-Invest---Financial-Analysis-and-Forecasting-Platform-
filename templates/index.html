@@ -286,24 +286,19 @@
                     <a href="/news" style="color: var(--accent-secondary); text-decoration: none; font-size: 0.9rem;"
                         data-i18n="home_news_all">Tümünü Gör</a>
                 </div>
-                <div style="margin-top: 1rem;">
-                    <div style="padding: 1.2rem 0; border-bottom: 1px solid var(--card-border);">
-                        <p style="font-size: 1rem; font-weight: 600; margin-bottom: 6px;" data-i18n="home_news_1_title">
-                            Merkez Bankası Faiz Kararı Bekleniyor</p>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);"
-                            data-i18n="home_news_1_text">Canlı yayın takip ediliyor...</span>
+                <div id="home-news-list" style="margin-top: 1rem;">
+                    <!-- Skeleton yüklenici -->
+                    <div class="home-news-skeleton" style="padding: 1.2rem 0; border-bottom: 1px solid var(--card-border);">
+                        <div style="height:14px; border-radius:6px; background:var(--glass-border); margin-bottom:8px; width:85%; animation: shimmer 1.4s infinite; background-size:200% 100%;"></div>
+                        <div style="height:10px; border-radius:6px; background:var(--glass-border); width:55%; animation: shimmer 1.4s infinite; background-size:200% 100%;"></div>
                     </div>
-                    <div style="padding: 1.2rem 0; border-bottom: 1px solid var(--card-border);">
-                        <p style="font-size: 1rem; font-weight: 600; margin-bottom: 6px;" data-i18n="home_news_2_title">
-                            Küresel Piyasalar Enflasyon Verilerine Odaklandı</p>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);"
-                            data-i18n="home_news_2_text">Bugün 14:30'da açıklandı</span>
+                    <div class="home-news-skeleton" style="padding: 1.2rem 0; border-bottom: 1px solid var(--card-border);">
+                        <div style="height:14px; border-radius:6px; background:var(--glass-border); margin-bottom:8px; width:75%; animation: shimmer 1.4s infinite; background-size:200% 100%;"></div>
+                        <div style="height:10px; border-radius:6px; background:var(--glass-border); width:45%; animation: shimmer 1.4s infinite; background-size:200% 100%;"></div>
                     </div>
-                    <div style="padding: 1.2rem 0;">
-                        <p style="font-size: 1rem; font-weight: 600; margin-bottom: 6px;" data-i18n="home_news_3_title">
-                            Döviz Piyasasında '10 Saniyelik' Yeni Trend</p>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);" data-i18n="home_news_3_text">GOBA
-                            Invest özel analizi</span>
+                    <div class="home-news-skeleton" style="padding: 1.2rem 0;">
+                        <div style="height:14px; border-radius:6px; background:var(--glass-border); margin-bottom:8px; width:90%; animation: shimmer 1.4s infinite; background-size:200% 100%;"></div>
+                        <div style="height:10px; border-radius:6px; background:var(--glass-border); width:60%; animation: shimmer 1.4s infinite; background-size:200% 100%;"></div>
                     </div>
                 </div>
             </div>
@@ -372,10 +367,7 @@
                 'home_why_text': 'Geleneksel analizlerin aksine, Meta\'nın geliştirdiği Prophet teknolojisini yerel dinamiklerle birleştirerek en isabetli tahminleri üretiyoruz.',
                 'home_stat_accuracy': 'Tahmin Doğruluğu', 'home_stat_active': 'Aktif Analiz',
                 'footer_text': '&copy; 2026 GOBA INVEST. Finans dünyasında yeni nesil standart.',
-                'footer_privacy': 'Gizlilik Politikası', 'footer_contact': 'İletişim',
-                'home_news_1_title': 'Merkez Bankası Faiz Kararı Bekleniyor', 'home_news_1_text': 'Canlı yayın takip ediliyor...',
-                'home_news_2_title': 'Küresel Piyasalar Enflasyon Verilerine Odaklandı', 'home_news_2_text': 'Bugün 14:30\'da açıklandı',
-                'home_news_3_title': 'Döviz Piyasasında \'10 Saniyelik\' Yeni Trend', 'home_news_3_text': 'GOBA Invest özel analizi'
+                'footer_privacy': 'Gizlilik Politikası', 'footer_contact': 'İletişim'
             },
             'en': {
                 'nav_home': '<i class="fa-solid fa-house"></i> Home',
@@ -397,10 +389,7 @@
                 'home_why_text': 'Unlike traditional analysis, we produce the most accurate forecasts by combining Prophet technology developed by Meta with local dynamics.',
                 'home_stat_accuracy': 'Forecast Accuracy', 'home_stat_active': 'Active Analysis',
                 'footer_text': '&copy; 2026 GOBA INVEST. Next generation standard in finance.',
-                'footer_privacy': 'Privacy Policy', 'footer_contact': 'Contact',
-                'home_news_1_title': 'Central Bank Interest Rate Decision Expected', 'home_news_1_text': 'Live broadcast is being followed...',
-                'home_news_2_title': 'Global Markets Focused on Inflation Data', 'home_news_2_text': 'Announced today at 14:30',
-                'home_news_3_title': 'New \'10-Second\' Trend in Forex Market', 'home_news_3_text': 'GOBA Invest special analysis'
+                'footer_privacy': 'Privacy Policy', 'footer_contact': 'Contact'
             }
         };
 
@@ -533,6 +522,44 @@
             setTimeout(updateRates, 10000 + jitter);
         }
         setTimeout(updateRates, 2000);
+
+        // ── Anasayfa Haber Widget'i ────────────────────────────────────
+        (function loadHomeNews() {
+            fetch('/api/news')
+                .then(r => r.json())
+                .then(data => {
+                    const list = document.getElementById('home-news-list');
+                    if (!list) return;
+                    if (!data.articles || data.articles.length === 0) {
+                        list.innerHTML = '<p style="color:var(--text-secondary); font-size:0.9rem; padding:1rem 0;">Haberler yüklenemedi.</p>';
+                        return;
+                    }
+                    const lang = document.documentElement.getAttribute('lang') || 'tr';
+                    const top3 = data.articles.slice(0, 3);
+                    list.innerHTML = top3.map((a, i) => `
+                        <div style="padding: 1.2rem 0; ${i < top3.length - 1 ? 'border-bottom: 1px solid var(--card-border);' : ''}">
+                            <a href="${a.link}" target="_blank" rel="noopener noreferrer"
+                               style="text-decoration:none; color:inherit;">
+                                <p style="font-size: 0.95rem; font-weight: 600; margin-bottom: 5px; line-height:1.4;"
+                                   onmouseover="this.style.color='var(--accent-secondary)'"
+                                   onmouseout="this.style.color='inherit'">
+                                    ${a.title}
+                                </p>
+                                <span style="font-size: 0.78rem; color: var(--text-secondary);">
+                                    <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>
+                                    ${lang === 'tr' ? a.date_tr : a.date_en}
+                                    &nbsp;&bull;&nbsp;
+                                    <span style="color:var(--accent-secondary);">${a.source}</span>
+                                </span>
+                            </a>
+                        </div>
+                    `).join('');
+                })
+                .catch(() => {
+                    const list = document.getElementById('home-news-list');
+                    if (list) list.innerHTML = '<p style="color:var(--text-secondary); font-size:0.9rem; padding:1rem 0;">Haberler yüklenemedi.</p>';
+                });
+        })();
     </script>
 </body>
 

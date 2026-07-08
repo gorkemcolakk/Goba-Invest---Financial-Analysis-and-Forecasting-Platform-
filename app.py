@@ -4,7 +4,10 @@ import logging
 import secrets
 import requests
 import pandas as pd
-from datetime import datetime, timedelta
+import feedparser
+import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from flask import Flask, render_template, request, redirect, url_for, jsonify, g, session
 from prophet import Prophet
 import plotly.graph_objects as go
@@ -394,6 +397,190 @@ def get_ticker_data(forex_data):
 
     return ticker
 
+
+# ── Haber Sistemi (RSS Feed) ─────────────────────────────────────────────────
+# TTL tabanlı bellek içi önbellek
+_NEWS_CACHE = {
+    "articles": [],
+    "last_updated": None,
+    "ttl_seconds": 6 * 3600  # 6 saat
+}
+
+# Çoklu RSS kaynak listesi — biri çalışmazsa diğerine geçilir
+NEWS_FEEDS = [
+    {
+        "url": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse",
+        "source": "MarketWatch",
+        "lang": "en"
+    },
+    {
+        "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+        "source": "BBC Business",
+        "lang": "en"
+    },
+    {
+        "url": "https://www.cnbc.com/id/10001147/device/rss/rss.html",
+        "source": "CNBC Finance",
+        "lang": "en"
+    },
+    {
+        "url": "https://www.investing.com/rss/news_301.rss",
+        "source": "Investing.com",
+        "lang": "en"
+    },
+    {
+        "url": "https://www.forexlive.com/feed/news",
+        "source": "ForexLive",
+        "lang": "en"
+    },
+]
+
+
+def _parse_date(entry) -> datetime:
+    """RSS entry'sinden yayın tarihini parse eder. Başarısız olursa şimdiki zamanı döndürür."""
+    for attr in ("published", "updated", "created"):
+        raw = getattr(entry, attr, None)
+        if raw:
+            try:
+                dt = parsedate_to_datetime(raw)
+                # timezone-aware yap
+                return dt.astimezone(timezone.utc).replace(tzinfo=None)
+            except Exception:
+                pass
+    return datetime.utcnow()
+
+
+def _classify_tag(title: str, summary: str) -> str:
+    """Haber başlığına/özetine göre otomatik etiket atar."""
+    text = (title + " " + summary).lower()
+    if any(k in text for k in ["gold", "silver", "altın", "gümüş", "commodity", "emtia"]):
+        return "Emtia"
+    if any(k in text for k in ["fed", "ecb", "central bank", "merkez bankası", "interest rate", "faiz"]):
+        return "Merkez Bankası"
+    if any(k in text for k in ["inflation", "enflasyon", "cpi", "gdp", "gsyih"]):
+        return "Ekonomi"
+    if any(k in text for k in ["dollar", "euro", "sterling", "forex", "currency", "dolar", "döviz"]):
+        return "Döviz"
+    if any(k in text for k in ["stock", "market", "s&p", "nasdaq", "borsa", "hisse"]):
+        return "Piyasalar"
+    if any(k in text for k in ["turkey", "turkish", "türkiye", "tcmb"]):
+        return "Türkiye"
+    if any(k in text for k in ["analysis", "analiz", "report", "rapor", "forecast", "tahmin"]):
+        return "Analiz"
+    return "Global"
+
+
+def _tag_color(tag: str) -> str:
+    """Etikete renk sınıfı atar."""
+    up_tags = {"Emtia", "Türkiye", "Analiz", "Piyasalar"}
+    return "rate-up" if tag in up_tags else "rate-down"
+
+
+def fetch_news(force_refresh: bool = False) -> list:
+    """RSS feed'lerinden finans haberlerini çeker. Cache geçerliyse cache'den döner."""
+    now = datetime.utcnow()
+    cache = _NEWS_CACHE
+
+    # Cache geçerliyse döndür
+    if (
+        not force_refresh
+        and cache["last_updated"]
+        and cache["articles"]
+        and (now - cache["last_updated"]).total_seconds() < cache["ttl_seconds"]
+    ):
+        logger.debug("Returning news from cache.")
+        return cache["articles"]
+
+    logger.info("Fetching fresh news from RSS feeds...")
+    one_month_ago = now - timedelta(days=30)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; GOBA-Invest-Bot/1.0; +https://goba-invest.onrender.com)",
+        "Accept": "application/rss+xml, application/xml, text/xml, */*"
+    }
+
+    all_articles = []
+    seen_titles = set()
+
+    for feed_cfg in NEWS_FEEDS:
+        try:
+            resp = requests.get(feed_cfg["url"], headers=headers, timeout=10)
+            resp.raise_for_status()
+            feed = feedparser.parse(resp.content)
+
+            if feed.bozo and not feed.entries:
+                logger.warning(f"Feed parse error for {feed_cfg['source']}: {feed.bozo_exception}")
+                continue
+
+            count = 0
+            for entry in feed.entries:
+                title = getattr(entry, "title", "").strip()
+                if not title or title in seen_titles:
+                    continue
+
+                summary_raw = getattr(entry, "summary", "") or getattr(entry, "description", "") or ""
+                # HTML tag'larını temizle
+                import re
+                summary = re.sub(r"<[^>]+>", "", summary_raw).strip()
+                if len(summary) > 280:
+                    summary = summary[:277] + "..."
+
+                link = getattr(entry, "link", "#") or "#"
+                pub_date = _parse_date(entry)
+
+                # Son 1 ay filtresi
+                if pub_date < one_month_ago:
+                    continue
+
+                tag = _classify_tag(title, summary)
+                tag_color = _tag_color(tag)
+
+                # Tarihi Türkçe formatta hazırla
+                months_tr = {
+                    1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan",
+                    5: "Mayıs", 6: "Haziran", 7: "Temmuz", 8: "Ağustos",
+                    9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
+                }
+                date_tr = f"{pub_date.day} {months_tr[pub_date.month]} {pub_date.year}"
+                date_en = pub_date.strftime("%b %d, %Y")
+                date_iso = pub_date.strftime("%Y-%m-%dT%H:%M:%S")
+
+                all_articles.append({
+                    "title": title,
+                    "summary": summary,
+                    "link": link,
+                    "source": feed_cfg["source"],
+                    "tag": tag,
+                    "tag_color": tag_color,
+                    "date_tr": date_tr,
+                    "date_en": date_en,
+                    "date_iso": date_iso,
+                    "pub_timestamp": pub_date.timestamp()
+                })
+                seen_titles.add(title)
+                count += 1
+
+            logger.info(f"Fetched {count} articles from {feed_cfg['source']}")
+
+        except Exception as e:
+            logger.warning(f"Failed to fetch from {feed_cfg['source']}: {e}")
+            continue
+
+    # Tarihe göre sırala (en yeni önce)
+    all_articles.sort(key=lambda x: x["pub_timestamp"], reverse=True)
+
+    # En fazla 50 haber göster
+    all_articles = all_articles[:50]
+
+    if all_articles:
+        cache["articles"] = all_articles
+        cache["last_updated"] = now
+        logger.info(f"News cache updated: {len(all_articles)} articles.")
+    else:
+        logger.warning("No articles fetched from any feed. Keeping stale cache if available.")
+
+    return cache["articles"]
+
+
 # ── CSRF Koruma ──────────────────────────────────────────────────────────────
 @app.before_request
 def csrf_protect():
@@ -542,7 +729,24 @@ def api_rates():
 
 @app.route('/news')
 def news():
-    return render_template('news.html')
+    articles = fetch_news()
+    last_updated = _NEWS_CACHE.get("last_updated")
+    last_updated_str = last_updated.strftime("%d.%m.%Y %H:%M") if last_updated else "-"
+    return render_template('news.html', articles=articles, last_updated=last_updated_str, article_count=len(articles))
+
+
+@app.route('/api/news')
+def api_news():
+    """Haberleri JSON olarak döndürür. force=1 parametresiyle cache bypass edilir."""
+    force = request.args.get('force', '0') == '1'
+    articles = fetch_news(force_refresh=force)
+    last_updated = _NEWS_CACHE.get("last_updated")
+    return jsonify({
+        "articles": articles,
+        "count": len(articles),
+        "last_updated": last_updated.strftime("%Y-%m-%dT%H:%M:%S") if last_updated else None,
+        "cache_ttl_seconds": _NEWS_CACHE["ttl_seconds"]
+    })
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
