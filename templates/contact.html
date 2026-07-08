@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="tr" data-theme="dark">
 <script>
-    (function() {
+    (function () {
         const theme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', theme);
         const lang = localStorage.getItem('lang') || 'tr';
         document.documentElement.setAttribute('lang', lang);
     })();
 </script>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,12 +20,14 @@
             margin-bottom: 2rem;
             text-align: left;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
+
         .form-control {
             width: 100%;
             padding: 1rem;
@@ -35,17 +38,20 @@
             font-family: inherit;
             transition: var(--transition);
         }
+
         .form-control:focus {
             outline: none;
             border-color: var(--accent-secondary);
             background: rgba(255, 255, 255, 0.08);
         }
+
         textarea.form-control {
             min-height: 150px;
             resize: vertical;
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="container nav-container">
@@ -56,7 +62,8 @@
             <nav style="display: flex; align-items: center;">
                 <a href="/" data-i18n="nav_home"><i class="fa-solid fa-house"></i> Anasayfa</a>
                 <a href="/news" data-i18n="nav_news"><i class="fa-solid fa-newspaper"></i> Haberler</a>
-                <a href="/contact" class="nav-active" data-i18n="nav_contact" style="color: var(--accent-secondary);"><i class="fa-solid fa-envelope"></i> İletişim</a>
+                <a href="/contact" class="nav-active" data-i18n="nav_contact" style="color: var(--accent-secondary);"><i
+                        class="fa-solid fa-envelope"></i> İletişim</a>
                 <div class="lang-switch" id="lang-toggle">
                     <i class="fa-solid fa-globe"></i>
                     <span id="lang-text">TR</span>
@@ -76,7 +83,8 @@
     <main class="container">
         <section class="hero" style="padding-bottom: 2rem;">
             <h1 data-i18n="contact_title">Bize Ulaşın</h1>
-            <p data-i18n="contact_subtitle">Finansal analizlerimiz veya platformumuz hakkında sorularınız mı var? Ekibimiz her zaman yardıma hazır.</p>
+            <p data-i18n="contact_subtitle">Finansal analizlerimiz veya platformumuz hakkında sorularınız mı var?
+                Ekibimiz her zaman yardıma hazır.</p>
         </section>
 
         <div style="max-width: 800px; margin: 0 auto;">
@@ -86,29 +94,37 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                         <div class="form-group">
                             <label data-i18n="label_name">Ad Soyad</label>
-                            <input type="text" name="name" class="form-control" placeholder="Adınız Soyadınız" data-i18n-placeholder="placeholder_name" required>
+                            <input type="text" name="name" class="form-control" placeholder="Adınız Soyadınız"
+                                data-i18n-placeholder="placeholder_name" required>
                         </div>
                         <div class="form-group">
                             <label data-i18n="label_email">E-posta Adresi</label>
-                            <input type="email" name="email" class="form-control" placeholder="example@email.com" required>
+                            <input type="email" name="email" class="form-control" placeholder="example@email.com"
+                                required>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label data-i18n="label_subject">Konu</label>
-                        <input type="text" name="subject" class="form-control" placeholder="Hangi konuda yazıyorsunuz?" data-i18n-placeholder="placeholder_subject" required>
+                        <input type="text" name="subject" class="form-control" placeholder="Hangi konuda yazıyorsunuz?"
+                            data-i18n-placeholder="placeholder_subject" required>
                     </div>
 
                     <div class="form-group">
                         <label data-i18n="label_message">Mesajınız</label>
-                        <textarea name="message" class="form-control" placeholder="Bize bir not bırakın..." data-i18n-placeholder="placeholder_message" required></textarea>
+                        <textarea name="message" class="form-control" placeholder="Bize bir not bırakın..."
+                            data-i18n-placeholder="placeholder_message" required></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="btn_send">Mesajı Gönder</button>
-                    
-                    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 40px; color: var(--text-secondary); font-size: 0.9rem;">
-                        <span data-i18n="contact_phone"><i class="fa-solid fa-phone" style="margin-right: 8px;"></i> +90 (212) 555 45 45</span>
-                        <span data-i18n="contact_address"><i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> Maslak, İstanbul</span>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="btn_send">Mesajı
+                        Gönder</button>
+
+                    <div
+                        style="margin-top: 2rem; display: flex; justify-content: center; gap: 40px; color: var(--text-secondary); font-size: 0.9rem;">
+                        <span data-i18n="contact_phone"><i class="fa-solid fa-phone" style="margin-right: 8px;"></i> +90
+                            (212) 555 45 45</span>
+                        <span data-i18n="contact_address"><i class="fa-solid fa-location-dot"
+                                style="margin-right: 8px;"></i> Maslak, İstanbul</span>
                     </div>
                 </form>
             </div>
@@ -119,7 +135,7 @@
     </main>
 
     <footer>
-        <p data-i18n="footer_text">&copy; 2024 GOBA INVEST. Tüm Hakları Saklıdır.</p>
+        <p data-i18n="footer_text">&copy; 2026 GOBA INVEST. Tüm Hakları Saklıdır.</p>
     </footer>
     <script>
         // Theme Toggle Logic
@@ -137,7 +153,7 @@
                 'placeholder_name': 'Adınız Soyadınız', 'placeholder_subject': 'Hangi konuda yazıyorsunuz?', 'placeholder_message': 'Bize bir not bırakın...',
                 'btn_send': 'Mesajı Gönder',
                 'back_to_home': 'Anasayfaya Dön',
-                'footer_text': '&copy; 2024 GOBA INVEST. Tüm Hakları Saklıdır.',
+                'footer_text': '&copy; 2026 GOBA INVEST. Tüm Hakları Saklıdır.',
                 'contact_phone': '<i class="fa-solid fa-phone" style="margin-right: 8px;"></i> +90 (212) 555 45 45',
                 'contact_address': '<i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> Maslak, İstanbul'
             },
@@ -151,7 +167,7 @@
                 'placeholder_name': 'Your full name', 'placeholder_subject': 'What are you writing about?', 'placeholder_message': 'Leave us a note...',
                 'btn_send': 'Send Message',
                 'back_to_home': 'Back to Home',
-                'footer_text': '&copy; 2024 GOBA INVEST. All Rights Reserved.',
+                'footer_text': '&copy; 2026 GOBA INVEST. All Rights Reserved.',
                 'contact_phone': '<i class="fa-solid fa-phone" style="margin-right: 8px;"></i> +90 (212) 555 45 45',
                 'contact_address': '<i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> Maslak, Istanbul'
             }
@@ -203,4 +219,5 @@
         updateClock();
     </script>
 </body>
+
 </html>

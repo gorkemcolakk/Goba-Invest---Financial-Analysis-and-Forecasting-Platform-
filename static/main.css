@@ -362,12 +362,12 @@ nav a:hover, nav a.active, nav a.nav-active {
 }
 
 /* Kart ikon varyantları */
-.icon-card-us         { background: #0f1a2e; border: 1.5px solid rgba(59, 130, 246, 0.3); }
-.icon-card-eu         { background: #0f152e; border: 1.5px solid rgba(99, 102, 241, 0.3); }
-.icon-card-gb         { background: #1a0f2e; border: 1.5px solid rgba(168, 85, 247, 0.3); }
-.icon-card-gold_ons   { background: linear-gradient(135deg, #3d1c00, #5c3300); border: 1.5px solid rgba(245, 158, 11, 0.35); }
-.icon-card-gold_gram  { background: linear-gradient(135deg, #2d1400, #4a2800); border: 1.5px solid rgba(251, 191, 36, 0.3); }
-.icon-card-silver     { background: #1a1e24; border: 1.5px solid rgba(148, 163, 184, 0.3); }
+.icon-card-us         { background: rgba(59, 130, 246, 0.05); border: 1.5px solid rgba(59, 130, 246, 0.2); }
+.icon-card-eu         { background: rgba(99, 102, 241, 0.05); border: 1.5px solid rgba(99, 102, 241, 0.2); }
+.icon-card-gb         { background: rgba(168, 85, 247, 0.05); border: 1.5px solid rgba(168, 85, 247, 0.2); }
+.icon-card-gold_ons   { background: rgba(245, 158, 11, 0.05); border: 1.5px solid rgba(245, 158, 11, 0.2); }
+.icon-card-gold_gram  { background: rgba(251, 191, 36, 0.05); border: 1.5px solid rgba(251, 191, 36, 0.2); }
+.icon-card-silver     { background: rgba(148, 163, 184, 0.05); border: 1.5px solid rgba(148, 163, 184, 0.2); }
 
 .icon-code {
     font-family: 'Outfit', 'Inter', sans-serif;

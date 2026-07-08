@@ -179,11 +179,26 @@
                 <div class="currency-header">
                     <div class="currency-icon icon-card-{{ item.flag }}">
                         {% if item.flag == 'gold_ons' %}
-                        <span class="icon-code">XAU</span>
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5" />
+                            <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1 oz</text>
+                        </svg>
                         {% elif item.flag == 'gold_gram' %}
-                        <span class="icon-code">GAU</span>
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="#f39c12" stroke="#d35400" stroke-width="0.5" />
+                            <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1g</text>
+                        </svg>
                         {% elif item.flag == 'silver' %}
-                        <span class="icon-code">XAG</span>
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="url(#silverGrad)" stroke="#7f8c8d" stroke-width="0.5" />
+                            <defs>
+                                <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#f5f6fa" />
+                                    <stop offset="100%" stop-color="#bdc3c7" />
+                                </linearGradient>
+                            </defs>
+                            <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#333" text-anchor="middle">1 oz</text>
+                        </svg>
                         {% elif item.symbol == 'USDTRY=X' %}
                         <img src="https://flagcdn.com/w80/us.png" width="32" height="22" alt="US"
                             style="border-radius:3px;">

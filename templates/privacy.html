@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="tr" data-theme="dark">
 <script>
-    (function() {
+    (function () {
         const theme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', theme);
         const lang = localStorage.getItem('lang') || 'tr';
         document.documentElement.setAttribute('lang', lang);
     })();
 </script>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,6 +25,7 @@
             margin-top: 2rem;
             text-align: left;
         }
+
         .privacy-content h2 {
             font-size: 1.5rem;
             margin-bottom: 1.5rem;
@@ -32,6 +34,7 @@
             padding-bottom: 0.5rem;
             display: inline-block;
         }
+
         .privacy-content p {
             margin-bottom: 2rem;
             color: var(--text-secondary);
@@ -40,6 +43,7 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="container nav-container">
@@ -70,18 +74,24 @@
     <main class="container">
         <section class="hero" style="padding-bottom: 2rem;">
             <h1 data-i18n="priv_title">Gizlilik Politikası</h1>
-            <p data-i18n="priv_subtitle">Verileriniz ve yatırımcı haklarınız bizim için en yüksek önceliktir. Şeffaf ve güvenli bir platform için buradayız.</p>
+            <p data-i18n="priv_subtitle">Verileriniz ve yatırımcı haklarınız bizim için en yüksek önceliktir. Şeffaf ve
+                güvenli bir platform için buradayız.</p>
         </section>
 
         <div class="privacy-content">
             <h2 data-i18n="priv_h1">Hangi Bilgileri Topluyoruz?</h2>
-            <p data-i18n="priv_p1">Sizden topladığımız bilgiler, sitemizdeki deneyiminizi kişiselleştirmek ve size daha iyi hizmet sunabilmek adına kullanılmaktadır. Topladığımız bilgiler arasında üyelik aşamasında alınan temel iletişim bilgileri ve sistem kullanımı sırasındaki tercihleriniz yer alır.</p>
+            <p data-i18n="priv_p1">Sizden topladığımız bilgiler, sitemizdeki deneyiminizi kişiselleştirmek ve size daha
+                iyi hizmet sunabilmek adına kullanılmaktadır. Topladığımız bilgiler arasında üyelik aşamasında alınan
+                temel iletişim bilgileri ve sistem kullanımı sırasındaki tercihleriniz yer alır.</p>
 
             <h2 data-i18n="priv_h2">Bilgilerin Kullanımı</h2>
-            <p data-i18n="priv_p2">Topladığımız tüm bilgiler, yalnızca GOBA Invest üzerinden sunduğumuz hizmetlerin kalitesini artırmak, sizlere yeni özellikler hakkında bilgi vermek ve yasal yükümlülüklerimize uymak amacıyla kullanılmaktadır.</p>
+            <p data-i18n="priv_p2">Topladığımız tüm bilgiler, yalnızca GOBA Invest üzerinden sunduğumuz hizmetlerin
+                kalitesini artırmak, sizlere yeni özellikler hakkında bilgi vermek ve yasal yükümlülüklerimize uymak
+                amacıyla kullanılmaktadır.</p>
 
             <h2 data-i18n="priv_h3">Veri Güvenliği</h2>
-            <p data-i18n="priv_p3">Verilerinizin güvenliği için en güncel şifreleme teknolojilerini ve güvenlik protokollerini kullanıyoruz. Bilgileriniz üçüncü taraflarla kesinlikle paylaşılmaz.</p>
+            <p data-i18n="priv_p3">Verilerinizin güvenliği için en güncel şifreleme teknolojilerini ve güvenlik
+                protokollerini kullanıyoruz. Bilgileriniz üçüncü taraflarla kesinlikle paylaşılmaz.</p>
         </div>
 
         <div style="text-align: center; margin-top: 4rem;">
@@ -90,7 +100,7 @@
     </main>
 
     <footer>
-        <p data-i18n="footer_text">&copy; 2024 GOBA INVEST. Tüm Hakları Saklıdır.</p>
+        <p data-i18n="footer_text">&copy; 2026 GOBA INVEST. Tüm Hakları Saklıdır.</p>
     </footer>
     <script>
         // Theme Toggle Logic
@@ -108,7 +118,7 @@
                 'priv_h2': 'Bilgilerin Kullanımı', 'priv_p2': 'Hizmet kalitesini artırmak amacıyla...',
                 'priv_h3': 'Veri Güvenliği', 'priv_p3': 'Verileriniz güvende.',
                 'back_to_home': 'Anasayfaya Dön',
-                'footer_text': '&copy; 2024 GOBA INVEST. Tüm Hakları Saklıdır.'
+                'footer_text': '&copy; 2026 GOBA INVEST. Tüm Hakları Saklıdır.'
             },
             'en': {
                 'nav_home': '<i class="fa-solid fa-house"></i> Home',
@@ -118,7 +128,9 @@
                 'priv_subtitle': 'Your data and investor rights are our top priority. We are here for a transparent and secure platform.',
                 'priv_h1': 'What Information Do We Collect?', 'priv_p1': 'The information we collect from you is used to personalize your experience...',
                 'priv_h2': 'Usage of Information', 'priv_p2': 'All information we collect is used only to improve the quality of services...',
-                'priv_h3': 'Data Security', 'priv_p3': 'We use the latest encryption technologies for the security of your data.'
+                'priv_h3': 'Data Security', 'priv_p3': 'We use the latest encryption technologies for the security of your data.',
+                'back_to_home': 'Back to Home',
+                'footer_text': '&copy; 2026 GOBA INVEST. All Rights Reserved.'
             }
         };
         const langToggle = document.getElementById('lang-toggle');
@@ -161,4 +173,5 @@
         updateClock();
     </script>
 </body>
+
 </html>
