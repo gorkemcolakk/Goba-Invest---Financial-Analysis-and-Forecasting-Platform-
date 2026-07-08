@@ -515,17 +515,26 @@ def _classify_tag(title: str, summary: str, feed_lang: str = "en") -> str:
         tag = "Analiz"
 
     if feed_lang == "en":
-        tag = f"{tag} (İNG)"
+        en_map = {
+            "Kripto": "Crypto",
+            "Emtia": "Commodities",
+            "Merkez Bankası": "Central Bank",
+            "Piyasalar": "Markets",
+            "Ekonomi": "Economy",
+            "Döviz": "Forex",
+            "Türkiye": "Turkey",
+            "Analiz": "Analysis",
+            "Global": "Global"
+        }
+        tag = en_map.get(tag, tag)
     
     return tag
 
 
 def _tag_color(tag: str) -> str:
     """Etikete renk sınıfı atar."""
-    # tag içinde (İNG) geçiyorsa temizle
-    clean_tag = tag.replace(" (İNG)", "")
-    up_tags = {"Emtia", "Türkiye", "Analiz", "Piyasalar", "Kripto"}
-    return "rate-up" if clean_tag in up_tags else "rate-down"
+    up_tags = {"Emtia", "Commodities", "Türkiye", "Turkey", "Analiz", "Analysis", "Piyasalar", "Markets", "Kripto", "Crypto"}
+    return "rate-up" if tag in up_tags else "rate-down"
 
 
 def fetch_news(force_refresh: bool = False) -> list:
