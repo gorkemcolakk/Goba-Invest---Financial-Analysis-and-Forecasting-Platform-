@@ -287,7 +287,7 @@
             {% if items %}
             <div class="glass-card">
                 <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-chart-pie"></i> <span data-i18n="distribution">Dağılım</span></h3>
-                <div style="position: relative; height: 250px;">
+                <div style="position: relative; height: 380px;">
                     <canvas id="portfolioChart"></canvas>
                 </div>
             </div>
@@ -470,12 +470,12 @@
                         const edgeX = x + Math.cos(angle) * radius;
                         const edgeY = y + Math.sin(angle) * radius;
                         
-                        const lineLen = 25;
+                        const lineLen = 20;
                         const outX = x + Math.cos(angle) * (radius + lineLen);
                         const outY = y + Math.sin(angle) * (radius + lineLen);
                         
                         const isRight = Math.cos(angle) >= 0;
-                        const endX = isRight ? outX + 15 : outX - 15;
+                        const endX = isRight ? outX + 10 : outX - 10;
                         
                         ctx.beginPath();
                         ctx.moveTo(edgeX, edgeY);
@@ -511,12 +511,18 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: {
-                        padding: 45 // Dışarıdaki yazılar için boşluk
+                        padding: {
+                            top: 40,
+                            bottom: 20,
+                            left: 45,
+                            right: 45
+                        }
                     },
                     plugins: {
                         legend: {
                             position: 'bottom',
                             labels: {
+                                padding: 20,
                                 color: textColor,
                                 font: {
                                     family: "'Inter', sans-serif"
