@@ -27,7 +27,13 @@
             <nav style="display: flex; align-items: center;">
                 <a href="/" class="nav-active" data-i18n="nav_home"><i class="fa-solid fa-house"></i> Anasayfa</a>
                 <a href="/news" data-i18n="nav_news"><i class="fa-solid fa-newspaper"></i> Haberler</a>
+                <a href="/portfolio" data-i18n="nav_portfolio"><i class="fa-solid fa-wallet"></i> Portföyüm</a>
                 <a href="/contact" data-i18n="nav_contact"><i class="fa-solid fa-envelope"></i> İletişim</a>
+                {% if current_user.is_authenticated %}
+                <a href="/logout" data-i18n="nav_logout" style="color: #ef4444;"><i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap</a>
+                {% else %}
+                <a href="/login" data-i18n="nav_login" style="color: var(--accent-main);"><i class="fa-solid fa-sign-in-alt"></i> Giriş Yap</a>
+                {% endif %}
 
                 <div class="lang-switch" id="lang-toggle">
                     <i class="fa-solid fa-globe"></i>
@@ -365,7 +371,10 @@
             'tr': {
                 'nav_home': '<i class="fa-solid fa-house"></i> Anasayfa',
                 'nav_news': '<i class="fa-solid fa-newspaper"></i> Haberler',
+                'nav_portfolio': '<i class="fa-solid fa-wallet"></i> Portföyüm',
                 'nav_contact': '<i class="fa-solid fa-envelope"></i> İletişim',
+                'nav_login': '<i class="fa-solid fa-sign-in-alt"></i> Giriş Yap',
+                'nav_logout': '<i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap',
                 'hero_title': 'Finansal Geleceğinizi <br>Yapay Zeka ile Öngörün.',
                 'hero_subtitle': 'Hatalara yer yok. En gelişmiş algoritmalarla döviz piyasasını 10 saniyede bir analiz ediyor, 2 yıllık projeksiyonlar sunuyoruz.',
                 'live_markets_title': 'Canlı Piyasalar', 'active_status': 'AKTİF', 'last_updated_label': 'Son Güncelleme:',
@@ -387,8 +396,11 @@
             'en': {
                 'nav_home': '<i class="fa-solid fa-house"></i> Home',
                 'nav_news': '<i class="fa-solid fa-newspaper"></i> News',
+                'nav_portfolio': '<i class="fa-solid fa-wallet"></i> Portfolio',
                 'nav_contact': '<i class="fa-solid fa-envelope"></i> Contact',
-                'hero_title': 'Predict Your Financial <br>Future with AI.',
+                'nav_login': '<i class="fa-solid fa-sign-in-alt"></i> Login',
+                'nav_logout': '<i class="fa-solid fa-sign-out-alt"></i> Logout',
+                'hero_title': 'Predict Your Financial Future <br>with Artificial Intelligence.',
                 'hero_subtitle': 'No room for errors. We analyze the forex market every 10 seconds with advanced algorithms and offer 2-year projections.',
                 'live_markets_title': 'Live Markets', 'active_status': 'ACTIVE', 'last_updated_label': 'Last Updated:',
                 'detailed_analysis': 'Detailed Analysis',

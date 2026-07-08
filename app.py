@@ -8,7 +8,10 @@ import feedparser
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
-from flask import Flask, render_template, request, redirect, url_for, jsonify, g, session
+from flask import Flask, render_template, request, redirect, url_for, jsonify, g, session, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from prophet import Prophet
 import plotly.graph_objects as go
 import json
@@ -28,7 +31,35 @@ logging.basicConfig(
 logger = logging.getLogger('goba')
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = Config.SECRET_KEY
+app.config.from_object(Config)
+
+# Veritabanı ve Auth Kurulumu
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.login_message = "Bu sayfayı görüntülemek için giriş yapmalısınız."
+
+# ── Models ───────────────────────────────────────────────────────────────────
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    portfolios = db.relationship('PortfolioItem', backref='owner', lazy=True)
+
+class PortfolioItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(20), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    purchase_price = db.Column(db.Float, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Uygulama başlatılırken veritabanını oluştur
+with app.app_context():
+    db.create_all()
 
 # Supported Currencies Settings
 SUPPORTED_CURRENCIES = {
@@ -686,6 +717,130 @@ def set_csrf_token():
     if '_csrf_token' not in session:
         session['_csrf_token'] = secrets.token_hex(32)
     g.csrf_token = session['_csrf_token']
+
+# ── Auth & Portfolio Routes ──────────────────────────────────────────────────
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('portfolio'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if User.query.filter_by(username=username).first():
+            flash('Bu kullanıcı adı zaten alınmış.', 'error')
+            return redirect(url_for('register'))
+            
+        new_user = User(username=username, password_hash=generate_password_hash(password))
+        db.session.add(new_user)
+        db.session.commit()
+        
+        login_user(new_user)
+        return redirect(url_for('portfolio'))
+        
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('portfolio'))
+        
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password_hash, password):
+            login_user(user)
+            return redirect(url_for('portfolio'))
+            
+        flash('Geçersiz kullanıcı adı veya şifre.', 'error')
+        
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/portfolio')
+@login_required
+def portfolio():
+    # Güncel kurları çek
+    rates, _, update_time = rate_cache.get_all()
+    rate_dict = {item['symbol']: item for item in rates}
+    
+    items = PortfolioItem.query.filter_by(user_id=current_user.id).all()
+    
+    portfolio_data = []
+    total_value_try = 0.0
+    
+    for item in items:
+        symbol = item.symbol
+        current_rate = rate_dict.get(symbol, {}).get('rate', 0)
+        
+        # TL Değeri hesapla
+        if current_rate > 0:
+            value_try = item.amount * current_rate
+        else:
+            value_try = 0
+            
+        profit = value_try - (item.purchase_price * item.amount)
+        profit_pct = (profit / (item.purchase_price * item.amount) * 100) if item.purchase_price > 0 else 0
+        
+        portfolio_data.append({
+            'id': item.id,
+            'symbol': symbol,
+            'name': SUPPORTED_CURRENCIES.get(symbol, {}).get('name', symbol),
+            'amount': item.amount,
+            'purchase_price': item.purchase_price,
+            'current_price': current_rate,
+            'value_try': value_try,
+            'profit': profit,
+            'profit_pct': profit_pct
+        })
+        
+        total_value_try += value_try
+        
+    return render_template('portfolio.html', 
+                           items=portfolio_data, 
+                           total_value=total_value_try,
+                           supported=SUPPORTED_CURRENCIES,
+                           update_time=update_time)
+
+@app.route('/api/portfolio', methods=['POST', 'DELETE'])
+@login_required
+def api_portfolio():
+    if request.method == 'POST':
+        symbol = request.form.get('symbol')
+        amount = float(request.form.get('amount', 0))
+        purchase_price = float(request.form.get('purchase_price', 0))
+        
+        if symbol not in SUPPORTED_CURRENCIES or amount <= 0:
+            return jsonify({'error': 'Geçersiz veri'}), 400
+            
+        item = PortfolioItem(
+            symbol=symbol,
+            amount=amount,
+            purchase_price=purchase_price,
+            user_id=current_user.id
+        )
+        db.session.add(item)
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    elif request.method == 'DELETE':
+        item_id = request.form.get('item_id')
+        item = PortfolioItem.query.filter_by(id=item_id, user_id=current_user.id).first()
+        if item:
+            db.session.delete(item)
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'error': 'Bulunamadı'}), 404
+
 
 
 @app.route('/')

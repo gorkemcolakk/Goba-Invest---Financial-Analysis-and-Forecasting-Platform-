@@ -10,6 +10,11 @@ class Config:
     DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
     PORT = int(os.environ.get('PORT', 5000))
 
+    # Database
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'goba.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     # Cache
     CACHE_DIR = os.environ.get('CACHE_DIR', 'static/cache')
     CACHE_TTL_HOURS = int(os.environ.get('CACHE_TTL_HOURS', '2'))

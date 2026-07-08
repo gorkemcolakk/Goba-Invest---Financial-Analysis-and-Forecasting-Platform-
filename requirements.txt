@@ -8,3 +8,6 @@ holidays>=0.37
 python-dotenv>=1.0
 gunicorn>=21.2
 feedparser>=6.0
+Flask-SQLAlchemy>=3.0
+Flask-Login>=0.6
+Werkzeug>=3.0
