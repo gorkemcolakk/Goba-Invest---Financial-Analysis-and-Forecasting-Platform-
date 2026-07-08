@@ -476,29 +476,42 @@ def _parse_date(entry) -> datetime:
 def _classify_tag(title: str, summary: str, feed_lang: str = "en") -> str:
     """Haber başlığına/özetine göre otomatik etiket atar."""
     text = (title + " " + summary).lower()
+    
+    # Kripto (En Yüksek Öncelik)
+    if any(k in text for k in ["bitcoin", "crypto", "kripto", "ethereum", "blockchain", "binance", "coin", "token"]):
+        return "Kripto"
+        
     # Emtia
     if any(k in text for k in ["gold", "silver", "altın", "gümüş", "commodity", "emtia",
                                 "petrol", "oil", "copper", "bakır", "platinum"]):
         return "Emtia"
+        
     # Merkez Bankası
     if any(k in text for k in ["fed", "ecb", "central bank", "merkez bankası", "tcmb",
                                 "interest rate", "faiz", "monetary policy", "para politikası",
                                 "rate cut", "rate hike", "boe", "bank of england"]):
         return "Merkez Bankası"
+        
+    # Piyasalar / Borsa
+    if any(k in text for k in ["stock", "market", "s&p", "s\u0026p", "nasdaq", "dow", "borsa", "hisse",
+                                "equit", "index", "endeks", "ipo", "shares", "wall street"]):
+        return "Piyasalar"
+        
     # Ekonomi / Makro
     if any(k in text for k in ["inflation", "enflasyon", "cpi", "gdp", "gsyih", "büyüme",
                                 "recession", "durgunluk", "unemployment", "işsizlik",
                                 "trade deficit", "cari açık", "budget", "bütçe"]):
         return "Ekonomi"
+        
     # Döviz
     if any(k in text for k in ["dollar", "euro", "sterling", "forex", "currency", "dolar",
                                 "döviz", "exchange rate", "kur", "usd", "eur", "gbp",
-                                "yen", "yuan", "lira", "tl ", "try"]):
+                                "yen", "yuan", "lira", " tl", "try", "parite"]):
         return "Döviz"
-    # Türkiye özeli — Türkçe kaynakları ve Türkiye anahtar kelimeleri
-    if feed_lang == "tr" or any(k in text for k in ["turkey", "turkish", "türkiye", "istanbul",
-                                                      "borsa istanbul", "bist", "hazine",
-                                                      "tcmb", "türk lirası"]):
+        
+    # Türkiye özeli
+    if any(k in text for k in ["turkey", "turkish", "türkiye", "istanbul",
+                               "borsa istanbul", "bist", "hazine", "türk lirası"]):
         return "Türkiye"
     # Piyasalar / Borsa
     if any(k in text for k in ["stock", "market", "s&p", "s\u0026p", "nasdaq", "dow", "borsa", "hisse",
@@ -513,7 +526,7 @@ def _classify_tag(title: str, summary: str, feed_lang: str = "en") -> str:
 
 def _tag_color(tag: str) -> str:
     """Etikete renk sınıfı atar."""
-    up_tags = {"Emtia", "Türkiye", "Analiz", "Piyasalar"}
+    up_tags = {"Emtia", "Türkiye", "Analiz", "Piyasalar", "Kripto"}
     return "rate-up" if tag in up_tags else "rate-down"
 
 
@@ -561,7 +574,14 @@ def fetch_news(force_refresh: bool = False) -> list:
                 continue
 
             count = 0
+            # Feed içindeki haberleri yeniye doğru alıyoruz, ama bir kaynaktan çok fazla almayalım 
+            # (böylece farklı günlere ait haberler de şans bulur)
+            MAX_PER_SOURCE = 12
+            
             for entry in feed.entries:
+                if count >= MAX_PER_SOURCE:
+                    break
+                    
                 title = getattr(entry, "title", "").strip()
                 if not title or title in seen_titles:
                     continue
