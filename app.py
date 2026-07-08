@@ -51,6 +51,7 @@ class PortfolioItem(db.Model):
     symbol = db.Column(db.String(20), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     purchase_price = db.Column(db.Float, nullable=False)
+    purchase_currency = db.Column(db.String(10), nullable=False, default='TRY')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 @login_manager.user_loader
@@ -791,8 +792,19 @@ def portfolio():
         else:
             value_try = 0
             
-        profit = value_try - (item.purchase_price * item.amount)
-        profit_pct = (profit / (item.purchase_price * item.amount) * 100) if item.purchase_price > 0 else 0
+        # Alış maliyetini TL cinsinden hesapla
+        purchase_currency = getattr(item, 'purchase_currency', 'TRY')
+        if purchase_currency == 'TRY':
+            cost_try = item.purchase_price * item.amount
+        elif purchase_currency == 'USD':
+            cost_try = item.purchase_price * item.amount * usd_try_rate
+        elif purchase_currency == 'EUR':
+            cost_try = item.purchase_price * item.amount * eur_try_rate
+        else:
+            cost_try = item.purchase_price * item.amount
+            
+        profit = value_try - cost_try
+        profit_pct = (profit / cost_try * 100) if cost_try > 0 else 0
         
         portfolio_data.append({
             'id': item.id,
@@ -800,6 +812,7 @@ def portfolio():
             'name': SUPPORTED_CURRENCIES.get(symbol, {}).get('name', symbol),
             'amount': item.amount,
             'purchase_price': item.purchase_price,
+            'purchase_currency': purchase_currency,
             'current_price': current_rate,
             'value_try': value_try,
             'profit': profit,
@@ -868,6 +881,7 @@ def api_portfolio():
         symbol = request.form.get('symbol')
         amount = float(request.form.get('amount', 0))
         purchase_price = float(request.form.get('purchase_price', 0))
+        purchase_currency = request.form.get('purchase_currency', 'TRY')
         
         if symbol not in SUPPORTED_CURRENCIES or amount <= 0:
             return jsonify({'error': 'Geçersiz veri'}), 400
@@ -876,6 +890,7 @@ def api_portfolio():
             symbol=symbol,
             amount=amount,
             purchase_price=purchase_price,
+            purchase_currency=purchase_currency,
             user_id=current_user.id
         )
         db.session.add(item)
