@@ -581,14 +581,7 @@ def fetch_news(force_refresh: bool = False) -> list:
                 continue
 
             count = 0
-            # Feed içindeki haberleri yeniye doğru alıyoruz, ama bir kaynaktan çok fazla almayalım 
-            # (böylece farklı günlere ait haberler de şans bulur)
-            MAX_PER_SOURCE = 12
-            
             for entry in feed.entries:
-                if count >= MAX_PER_SOURCE:
-                    break
-                    
                 title = getattr(entry, "title", "").strip()
                 if not title or title in seen_titles:
                     continue
@@ -653,10 +646,10 @@ def fetch_news(force_refresh: bool = False) -> list:
     final_articles = []
     # Her günden sırayla 1'er 1'er haber çek (round-robin)
     # Böylece haberler haftanın 7 gününe yayılır
-    while len(final_articles) < 60:
+    while len(final_articles) < 100:
         added = False
         for day in sorted_days:
-            if by_date[day] and len(final_articles) < 60:
+            if by_date[day] and len(final_articles) < 100:
                 final_articles.append(by_date[day].pop(0))
                 added = True
         if not added:
