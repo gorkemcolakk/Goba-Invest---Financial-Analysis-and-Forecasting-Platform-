@@ -128,9 +128,10 @@
                                 {% elif t.icon_type == 'cumhuriyet' %}
                                 <svg width="24" height="24" viewBox="0 0 24 24" style="vertical-align: middle;">
                                     <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5"/>
-                                    <!-- A perfectly aligned crescent and star -->
-                                    <path d="M10 7.5A4.5 4.5 0 1 0 15 16.5a3.8 3.8 0 1 1-5-9z" fill="#fff"/>
-                                    <polygon points="15.5,10 16,11.5 17.5,11.5 16.3,12.5 16.7,14 15.5,13 14.3,14 14.7,12.5 13.5,11.5 15,11.5" fill="#fff"/>
+                                    <!-- A perfectly aligned crescent and star using overlay circles -->
+                                    <circle cx="10" cy="12" r="4.5" fill="#fff"/>
+                                    <circle cx="11.7" cy="12" r="4" fill="#f1c40f"/>
+                                    <polygon points="15.5,10.2 16.0,11.4 17.3,11.4 16.3,12.2 16.7,13.5 15.5,12.7 14.3,13.5 14.7,12.2 13.7,11.4 15.0,11.4" fill="#fff"/>
                                 </svg>
                                 {% else %}◆{% endif %}
                             </span>
@@ -324,7 +325,7 @@
                 'converter_subtitle': 'Anlık Piyasa Verileriyle',
                 'label_amount': 'Miktar', 'label_source': 'Kaynak', 'label_target': 'Hedef', 'result_label': 'Tahmini İşlem Tutarı',
                 'name_USDTRY=X': 'Dolar', 'name_EURTRY=X': 'Euro', 'name_GBPTRY=X': 'Sterlin',
-                'name_GC=F': 'Ons Altın', 'name_SI=F': 'Gümüş', 'name_XAUTRY=X': 'Gram Altın',
+                'name_GC=F': 'Ons Altın', 'name_SI=F': 'Ons Gümüş', 'name_XAUTRY=X': 'Gram Altın',
                 'home_news_title': 'Son Finans Haberleri', 'home_news_all': 'Tümünü Gör',
                 'home_why_title': 'Neden GOBA Invest?',
                 'home_why_text': 'Geleneksel analizlerin aksine, Meta\'nın geliştirdiği Prophet teknolojisini yerel dinamiklerle birleştirerek en isabetli tahminleri üretiyoruz.',
@@ -349,7 +350,7 @@
                 'converter_subtitle': 'With Real-Time Market Data',
                 'label_amount': 'Amount', 'label_source': 'Source', 'label_target': 'Target', 'result_label': 'Estimated Transaction Amount',
                 'name_USDTRY=X': 'Dollar', 'name_EURTRY=X': 'Euro', 'name_GBPTRY=X': 'Sterling',
-                'name_GC=F': 'Gold (Oz)', 'name_SI=F': 'Silver', 'name_XAUTRY=X': 'Gold (Gram)',
+                'name_GC=F': 'Gold (Oz)', 'name_SI=F': 'Silver (Oz)', 'name_XAUTRY=X': 'Gold (Gram)',
                 'home_news_title': 'Latest Finance News', 'home_news_all': 'See All',
                 'home_why_title': 'Why GOBA Invest?',
                 'home_why_text': 'Unlike traditional analysis, we produce the most accurate forecasts by combining Prophet technology developed by Meta with local dynamics.',
