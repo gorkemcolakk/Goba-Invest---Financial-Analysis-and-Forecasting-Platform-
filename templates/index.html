@@ -31,9 +31,9 @@
                 <a href="/profile" data-i18n="nav_profile"><i class="fa-solid fa-user"></i> Profilim</a>
                 <a href="/contact" data-i18n="nav_contact"><i class="fa-solid fa-envelope"></i> İletişim</a>
                 {% if current_user.is_authenticated %}
-                <a href="/logout" data-i18n="nav_logout" style="color: #ef4444;"><i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap</a>
+                <a href="/logout" data-i18n="nav_logout" style="color: #ef4444; white-space: nowrap;"><i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap</a>
                 {% else %}
-                <a href="/login" data-i18n="nav_login" style="color: var(--accent-main);"><i class="fa-solid fa-sign-in-alt"></i> Giriş Yap</a>
+                <a href="/login" data-i18n="nav_login" style="color: var(--accent-main); white-space: nowrap;"><i class="fa-solid fa-sign-in-alt"></i> Giriş Yap</a>
                 {% endif %}
 
                 <div class="lang-switch" id="lang-toggle">
@@ -182,6 +182,7 @@
 
         <section class="bento-grid analysis-grid">
             {% for item in forex_data %}
+            {% if item.symbol not in ['CEYREK', 'YARIM', 'TAM', 'CUMHURIYET', 'SILVER_GRAM'] %}
             <a href="/currency/{{ item.symbol }}" class="glass-card">
                 <div class="currency-header">
                     <div class="currency-icon icon-card-{{ item.flag }}">
@@ -212,7 +213,33 @@
                         {% elif item.symbol == 'EURTRY=X' %}
                         <img src="https://flagcdn.com/w80/eu.png" width="32" height="22" alt="EU"
                             style="border-radius:3px;">
-                        {% else %}
+                        {% elif item.flag == 'ceyrek' %}
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="#f1c40f" stroke-width="2" />
+                            <path d="M 12 12 L 12 3 A 9 9 0 0 1 21 12 Z" fill="#f39c12" />
+                        </svg>
+                        {% elif item.flag == 'yarim' %}
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="#f1c40f" stroke-width="2" />
+                            <path d="M 12 12 L 12 3 A 9 9 0 0 1 12 21 Z" fill="#f39c12" />
+                        </svg>
+                        {% elif item.flag == 'tam' %}
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5" />
+                        </svg>
+                        {% elif item.flag == 'cumhuriyet' %}
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5" />
+                            <circle cx="10" cy="12" r="4.5" fill="#fff" />
+                            <circle cx="11.7" cy="12" r="4" fill="#f1c40f" />
+                            <polygon points="15.5,10.2 16.0,11.4 17.3,11.4 16.3,12.2 16.7,13.5 15.5,12.7 14.3,13.5 14.7,12.2 13.7,11.4 15.0,11.4" fill="#fff" />
+                        </svg>
+                        {% elif item.flag == 'gram_gumus' %}
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="#bdc3c7" stroke="#7f8c8d" stroke-width="0.5" />
+                            <text x="12" y="15.5" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1g</text>
+                        </svg>
+                        {% elif item.symbol == 'GBPTRY=X' %}
                         <img src="https://flagcdn.com/w80/gb.png" width="32" height="22" alt="GB"
                             style="border-radius:3px;">
                         {% endif %}
@@ -244,6 +271,7 @@
                             class="fa-solid fa-chevron-right" style="font-size: 0.7rem; margin-left: 4px;"></i></span>
                 </div>
             </a>
+            {% endif %}
             {% endfor %}
         </section>
 

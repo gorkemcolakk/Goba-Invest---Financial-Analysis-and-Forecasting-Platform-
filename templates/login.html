@@ -144,7 +144,7 @@
                 {% if messages %}
                     <div class="flash-messages">
                         {% for category, message in messages %}
-                            <div class="flash-{{ category }}">{{ message }}</div>
+                            <div class="flash-{{ category }} flash-msg">{{ message }}</div>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -220,6 +220,20 @@
             document.querySelector('label[for="password"]').innerText = translations[lang]['password'];
             document.querySelector('button[type="submit"]').innerText = translations[lang]['login_btn'];
             document.querySelector('.auth-footer').innerHTML = translations[lang]['no_account'];
+            
+            // Translate flash messages if any
+            const flashMsgs = document.querySelectorAll('.flash-msg');
+            flashMsgs.forEach(msg => {
+                if (!msg.dataset.trText) {
+                    msg.dataset.trText = msg.innerText;
+                }
+                const orig = msg.dataset.trText;
+                if (orig.includes("Bu sayfayı görüntülemek için giriş yapmalısınız")) {
+                    msg.innerText = lang === 'en' ? "Please log in to access this page." : "Bu sayfayı görüntülemek için giriş yapmalısınız.";
+                } else if (orig.includes("Hatalı") || orig.includes("Yanlış")) {
+                    msg.innerText = lang === 'en' ? "Invalid username or password." : "Hatalı kullanıcı adı veya şifre.";
+                }
+            });
         }
 
         langToggle.addEventListener('click', () => {

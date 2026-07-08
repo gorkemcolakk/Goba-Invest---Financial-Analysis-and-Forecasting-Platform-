@@ -38,3 +38,4 @@ static/cache/*
 # OS
 .DS_Store
 Thumbs.db
+*.db

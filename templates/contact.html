@@ -62,8 +62,14 @@
             <nav style="display: flex; align-items: center;">
                 <a href="/" data-i18n="nav_home"><i class="fa-solid fa-house"></i> Anasayfa</a>
                 <a href="/news" data-i18n="nav_news"><i class="fa-solid fa-newspaper"></i> Haberler</a>
-                <a href="/contact" class="nav-active" data-i18n="nav_contact" style="color: var(--accent-secondary);"><i
-                        class="fa-solid fa-envelope"></i> İletişim</a>
+                <a href="/portfolio" data-i18n="nav_portfolio"><i class="fa-solid fa-wallet"></i> Portföyüm</a>
+                <a href="/profile" data-i18n="nav_profile"><i class="fa-solid fa-user"></i> Profilim</a>
+                <a href="/contact" class="nav-active" data-i18n="nav_contact"><i class="fa-solid fa-envelope"></i> İletişim</a>
+                {% if current_user.is_authenticated %}
+                <a href="/logout" data-i18n="nav_logout" style="color: #ef4444; white-space: nowrap;"><i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap</a>
+                {% else %}
+                <a href="/login" data-i18n="nav_login" style="color: var(--accent-main); white-space: nowrap;"><i class="fa-solid fa-sign-in-alt"></i> Giriş Yap</a>
+                {% endif %}
                 <div class="lang-switch" id="lang-toggle">
                     <i class="fa-solid fa-globe"></i>
                     <span id="lang-text">TR</span>
@@ -146,12 +152,9 @@
             'tr': {
                 'nav_home': '<i class="fa-solid fa-house"></i> Anasayfa',
                 'nav_news': '<i class="fa-solid fa-newspaper"></i> Haberler',
-                                'nav_portfolio': '<i class="fa-solid fa-wallet"></i> Portföyüm',
-                                'nav_portfolio': '<i class="fa-solid fa-wallet"></i> Portföyüm',
+                'nav_portfolio': '<i class="fa-solid fa-wallet"></i> Portföyüm',
                 'nav_profile': '<i class="fa-solid fa-user"></i> Profilim',
                 'nav_contact': '<i class="fa-solid fa-envelope"></i> İletişim',
-                'nav_login': '<i class="fa-solid fa-sign-in-alt"></i> Giriş Yap',
-                'nav_logout': '<i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap',
                 'nav_login': '<i class="fa-solid fa-sign-in-alt"></i> Giriş Yap',
                 'nav_logout': '<i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap',
                 'contact_title': 'Bize Ulaşın',

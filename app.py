@@ -64,12 +64,17 @@ with app.app_context():
 
 # Supported Currencies Settings
 SUPPORTED_CURRENCIES = {
-    "USDTRY=X": {"name": "Dolar", "flag": "us", "symbol": "₺", "base": "USD", "quote": "TRY", "precision": 4},
-    "EURTRY=X": {"name": "Euro", "flag": "eu", "symbol": "₺", "base": "EUR", "quote": "TRY", "precision": 4},
-    "GBPTRY=X": {"name": "Sterlin", "flag": "gb", "symbol": "₺", "base": "GBP", "quote": "TRY", "precision": 4},
-    "GC=F":     {"name": "Ons Altın", "flag": "gold_ons", "symbol": "$", "base": "XAU", "quote": "USD", "precision": 2},
-    "SI=F":     {"name": "Ons Gümüş", "flag": "silver", "symbol": "$", "base": "XAG", "quote": "USD", "precision": 2},
-    "XAUTRY=X": {"name": "Gram Altın", "flag": "gold_gram", "symbol": "₺", "base": "XAU", "quote": "TRY", "precision": 2},
+    "USDTRY=X":    {"name": "Dolar",           "flag": "us",          "symbol": "₺", "base": "USD", "quote": "TRY", "precision": 4},
+    "EURTRY=X":    {"name": "Euro",            "flag": "eu",          "symbol": "₺", "base": "EUR", "quote": "TRY", "precision": 4},
+    "GBPTRY=X":    {"name": "Sterlin",         "flag": "gb",          "symbol": "₺", "base": "GBP", "quote": "TRY", "precision": 4},
+    "GC=F":        {"name": "Ons Altın",       "flag": "gold_ons",    "symbol": "$", "base": "XAU", "quote": "USD", "precision": 2},
+    "SI=F":        {"name": "Ons Gümüş",       "flag": "silver",      "symbol": "$", "base": "XAG", "quote": "USD", "precision": 2},
+    "XAUTRY=X":    {"name": "Gram Altın",      "flag": "gold_gram",   "symbol": "₺", "base": "XAU", "quote": "TRY", "precision": 2},
+    "SILVER_GRAM": {"name": "Gram Gümüş",      "flag": "gram_gumus",  "symbol": "₺", "base": "XAG", "quote": "TRY", "precision": 2},
+    "CEYREK":      {"name": "Çeyrek Altın",    "flag": "ceyrek",      "symbol": "₺", "base": "XAU", "quote": "TRY", "precision": 2, "multiplier": 1.75},
+    "YARIM":       {"name": "Yarım Altın",     "flag": "yarim",       "symbol": "₺", "base": "XAU", "quote": "TRY", "precision": 2, "multiplier": 3.51},
+    "TAM":         {"name": "Tam Altın",       "flag": "tam",         "symbol": "₺", "base": "XAU", "quote": "TRY", "precision": 2, "multiplier": 7.02},
+    "CUMHURIYET":  {"name": "Cumhuriyet Altın","flag": "cumhuriyet",  "symbol": "₺", "base": "XAU", "quote": "TRY", "precision": 2, "multiplier": 7.216}
 }
 
 # Türev Altın Ürünleri (Gram Altın üzerinden hesaplanır)
@@ -136,7 +141,7 @@ def get_current_data_all():
                 change = rate_val - prev_val
                 change_percent = (change / prev_val) * 100 if prev_val != 0 else 0
             elif symbol == 'SI=F':
-                # Gümüş: Direkt USD cinsinden
+                # Ons Gümüş: Direkt USD cinsinden
                 rate_val = silver_usd
                 prev_val = silver_prev_usd
                 change = rate_val - prev_val
@@ -145,6 +150,19 @@ def get_current_data_all():
                 # Gram Altın: (Ons USD * USD/TRY) / 31.1035
                 rate_val = (gold_usd * usd_try_rate) / 31.1035
                 prev_val = (gold_prev_usd * usd_try_rate) / 31.1035
+                change = rate_val - prev_val
+                change_percent = (change / prev_val) * 100 if prev_val != 0 else 0
+            elif symbol == 'SILVER_GRAM':
+                # Gram Gümüş: (Ons USD * USD/TRY) / 31.1035
+                rate_val = (silver_usd * usd_try_rate) / 31.1035
+                prev_val = (silver_prev_usd * usd_try_rate) / 31.1035
+                change = rate_val - prev_val
+                change_percent = (change / prev_val) * 100 if prev_val != 0 else 0
+            elif symbol in ['CEYREK', 'YARIM', 'TAM', 'CUMHURIYET']:
+                # Türev altınlar: (Gram Altın) * multiplier
+                multiplier = info.get('multiplier', 1)
+                rate_val = ((gold_usd * usd_try_rate) / 31.1035) * multiplier
+                prev_val = ((gold_prev_usd * usd_try_rate) / 31.1035) * multiplier
                 change = rate_val - prev_val
                 change_percent = (change / prev_val) * 100 if prev_val != 0 else 0
             else:
@@ -363,16 +381,26 @@ def get_ticker_data(forex_data):
     usd_try_item = None
 
     # icon_type → emoji + renk eşlemesi (frontend'de kullanılır)
+    # Türev altın sembolleri — bunlar GOLD_DERIVED bloğunda ayrıca ekleneceğinden
+    # hem ana forex_data döngüsünde hem de GOLD_DERIVED'da çift eklenmemesi için skip edilir.
+    _DERIVED_SYMBOLS = {"CEYREK", "YARIM", "TAM", "CUMHURIYET"}
+
     _icon_map = {
-        "USDTRY=X": "usd",
-        "EURTRY=X": "eur",
-        "GBPTRY=X": "gbp",
-        "GC=F":     "gold_ons",
-        "SI=F":     "silver",
-        "XAUTRY=X": "gold_gram",
+        "USDTRY=X":    "usd",
+        "EURTRY=X":    "eur",
+        "GBPTRY=X":    "gbp",
+        "GC=F":        "gold_ons",
+        "SI=F":        "silver",
+        "XAUTRY=X":    "gold_gram",
+        "SILVER_GRAM": "gram_gumus",
     }
 
     for item in forex_data:
+        # Türev altınlar get_ticker_data içinde GOLD_DERIVED'dan hesaplanacak, tekrar ekleme
+        if item["symbol"] in _DERIVED_SYMBOLS:
+            if item["symbol"] == "XAUTRY=X":
+                gram_item = item
+            continue
         ticker.append({
             "id": item["symbol"].replace("=", ""),
             "name": item["name"],
@@ -491,18 +519,29 @@ NEWS_FEEDS = [
 ]
 
 
-def _parse_date(entry) -> datetime:
-    """RSS entry'sinden yayın tarihini parse eder. Başarısız olursa şimdiki zamanı döndürür."""
+def _parse_date(entry) -> datetime | None:
+    """RSS entry'sinden yayın tarihini parse eder. Başarısız olursa None döndürür."""
+    # Önce feedparser'ın zaten parse ettiği struct_time'ı dene (en güvenilir)
+    for attr in ("published_parsed", "updated_parsed", "created_parsed"):
+        parsed = getattr(entry, attr, None)
+        if parsed:
+            try:
+                import calendar
+                ts = calendar.timegm(parsed)  # struct_time (UTC) → Unix timestamp
+                return datetime.utcfromtimestamp(ts)
+            except Exception:
+                pass
+    # Ham string'den parse etmeyi dene
     for attr in ("published", "updated", "created"):
         raw = getattr(entry, attr, None)
         if raw:
             try:
                 dt = parsedate_to_datetime(raw)
-                # timezone-aware yap
                 return dt.astimezone(timezone.utc).replace(tzinfo=None)
             except Exception:
                 pass
-    return datetime.utcnow()
+    # Tarih bulunamadı — None döndür
+    return None
 
 
 def _classify_tag(title: str, summary: str, feed_lang: str = "en") -> str:
@@ -626,21 +665,28 @@ def fetch_news(force_refresh: bool = False) -> list:
                     summary = summary[:277] + "..."
 
                 link = getattr(entry, "link", "#") or "#"
-                pub_date_utc = _parse_date(entry)  # UTC
+                pub_date_utc = _parse_date(entry)  # UTC veya None
 
-                # Son 7 gün filtresi (UTC bazında)
-                if pub_date_utc < one_week_ago:
-                    continue
+                if pub_date_utc is not None:
+                    # Son 7 gün filtresi (UTC bazında)
+                    if pub_date_utc < one_week_ago:
+                        continue
+                    # Gösterim tarihi: UTC+3 (Türkiye saati)
+                    pub_date_tr = pub_date_utc + TR_OFFSET
+                    date_tr = f"{pub_date_tr.day} {months_tr[pub_date_tr.month]} {pub_date_tr.year}, {pub_date_tr.strftime('%H:%M')}"
+                    date_en = pub_date_tr.strftime("%b %d, %Y %H:%M")
+                    date_iso = pub_date_tr.strftime("%Y-%m-%dT%H:%M:%S")
+                    pub_timestamp = pub_date_utc.timestamp()
+                else:
+                    # Tarih bilinmiyor — gösterme, en sona koy
+                    date_tr = "—"
+                    date_en = "—"
+                    date_iso = "1970-01-01T00:00:00"
+                    pub_timestamp = 0.0
 
-                # Gösterim tarihi: UTC+3 (Türkiye saati)
-                pub_date_tr = pub_date_utc + TR_OFFSET
 
                 tag = _classify_tag(title, summary, feed_lang)
                 tag_color = _tag_color(tag)
-
-                date_tr = f"{pub_date_tr.day} {months_tr[pub_date_tr.month]} {pub_date_tr.year}, {pub_date_tr.strftime('%H:%M')}"
-                date_en = pub_date_tr.strftime("%b %d, %Y %H:%M")
-                date_iso = pub_date_tr.strftime("%Y-%m-%dT%H:%M:%S")
 
                 all_articles.append({
                     "title": title,
@@ -653,7 +699,7 @@ def fetch_news(force_refresh: bool = False) -> list:
                     "date_tr": date_tr,
                     "date_en": date_en,
                     "date_iso": date_iso,
-                    "pub_timestamp": pub_date_utc.timestamp()
+                    "pub_timestamp": pub_timestamp
                 })
                 seen_titles.add(title)
                 count += 1
@@ -781,6 +827,7 @@ def portfolio():
     
     portfolio_data = []
     total_value_try = 0.0
+    total_profit_try = 0.0
     
     for item in items:
         symbol = item.symbol
@@ -832,9 +879,22 @@ def portfolio():
         
         total_value_try += value_try
         
+        # Calculate cost in TRY by assuming purchase_price (which is in purchase_currency) 
+        # is converted to TRY today. (Alternatively, the user expects current value - current cost in TRY)
+        if purchase_currency == 'USD':
+            cost_in_try = item.purchase_price * usd_try_rate
+        elif purchase_currency == 'EUR':
+            cost_in_try = item.purchase_price * eur_try_rate
+        else:
+            cost_in_try = item.purchase_price
+            
+        profit_in_try = value_try - cost_in_try
+        total_profit_try += profit_in_try
+        
     return render_template('portfolio.html', 
                            items=portfolio_data, 
                            total_value=total_value_try,
+                           total_profit=total_profit_try,
                            usd_rate=usd_try_rate,
                            eur_rate=eur_try_rate,
                            supported=SUPPORTED_CURRENCIES,

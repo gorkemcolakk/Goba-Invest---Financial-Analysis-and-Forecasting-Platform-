@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="tr" data-theme="dark">
 <script>
-    (function() {
+    (function () {
         const theme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', theme);
         const lang = localStorage.getItem('lang') || 'tr';
         document.documentElement.setAttribute('lang', lang);
     })();
 </script>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portföyüm | GOBA INVEST</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,6 +26,7 @@
             align-items: center;
             margin-bottom: 2rem;
         }
+
         .total-value-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -32,6 +36,7 @@
             box-shadow: var(--card-shadow);
             margin-bottom: 2rem;
         }
+
         .total-value-card h2 {
             font-size: 3rem;
             margin: 0.5rem 0;
@@ -39,16 +44,19 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .portfolio-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
         }
+
         @media (max-width: 900px) {
             .portfolio-grid {
                 grid-template-columns: 1fr;
             }
         }
+
         .glass-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -56,27 +64,34 @@
             padding: 2rem;
             box-shadow: var(--card-shadow);
         }
+
         .table-responsive {
             overflow-x: auto;
         }
+
         .portfolio-table {
             width: 100%;
             border-collapse: collapse;
         }
-        .portfolio-table th, .portfolio-table td {
+
+        .portfolio-table th,
+        .portfolio-table td {
             padding: 1rem;
             text-align: left;
             border-bottom: 1px solid var(--card-border);
         }
+
         .portfolio-table th {
             color: var(--text-secondary);
             font-weight: 500;
         }
+
         .add-asset-form {
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
+
         .form-control {
             width: 100%;
             padding: 0.8rem;
@@ -85,6 +100,7 @@
             border-radius: 8px;
             color: var(--text-primary);
         }
+
         .btn-primary {
             padding: 0.8rem;
             background: var(--accent-gradient);
@@ -95,9 +111,11 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
+
         .btn-primary:hover {
             transform: translateY(-2px);
         }
+
         .btn-danger {
             background: rgba(239, 68, 68, 0.1);
             color: #ef4444;
@@ -106,11 +124,13 @@
             border-radius: 6px;
             cursor: pointer;
         }
+
         .btn-danger:hover {
             background: rgba(239, 68, 68, 0.2);
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="container nav-container">
@@ -121,12 +141,16 @@
             <nav style="display: flex; align-items: center;">
                 <a href="/" data-i18n="nav_home"><i class="fa-solid fa-house"></i> Anasayfa</a>
                 <a href="/news" data-i18n="nav_news"><i class="fa-solid fa-newspaper"></i> Haberler</a>
-                <a href="/portfolio" class="nav-active" data-i18n="nav_portfolio"><i class="fa-solid fa-wallet"></i> Portföyüm</a>
+                <a href="/portfolio" class="nav-active" data-i18n="nav_portfolio"><i class="fa-solid fa-wallet"></i>
+                    Portföyüm</a>
+                <a href="/profile" data-i18n="nav_profile"><i class="fa-solid fa-user"></i> Profilim</a>
                 <a href="/contact" data-i18n="nav_contact"><i class="fa-solid fa-envelope"></i> İletişim</a>
                 {% if current_user.is_authenticated %}
-                <a href="/logout" data-i18n="nav_logout" style="color: #ef4444;"><i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap</a>
+                <a href="/logout" data-i18n="nav_logout" style="color: #ef4444; white-space: nowrap;"><i
+                        class="fa-solid fa-sign-out-alt"></i> Çıkış Yap</a>
                 {% else %}
-                <a href="/login" data-i18n="nav_login" style="color: var(--accent-main);"><i class="fa-solid fa-sign-in-alt"></i> Giriş Yap</a>
+                <a href="/login" data-i18n="nav_login" style="color: var(--accent-main); white-space: nowrap;"><i
+                        class="fa-solid fa-sign-in-alt"></i> Giriş Yap</a>
                 {% endif %}
 
                 <div class="lang-switch" id="lang-toggle">
@@ -144,51 +168,80 @@
 
     <main class="container" style="padding-top: 2rem; min-height: calc(100vh - 80px);">
         <div style="margin-bottom: 2rem;">
-            <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-wallet gradient-text"></i> Portföyüm</h1>
-            <p style="color: var(--text-secondary); margin-top: 0.5rem;">Yatırımlarınızı ve kar/zarar durumunuzu takip edin.</p>
+            <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary);"><i
+                    class="fa-solid fa-wallet gradient-text"></i> Portföyüm</h1>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">Yatırımlarınızı ve kar/zarar durumunuzu takip
+                edin.</p>
         </div>
 
         <div class="total-value-card fade-in">
-            <p style="color: var(--text-secondary); font-size: 1.2rem;" data-i18n="total_wealth">Toplam Portföy Değeri</p>
+            <p style="color: var(--text-secondary); font-size: 1.2rem;" data-i18n="total_wealth">Toplam Portföy Değeri
+            </p>
             <div style="display: flex; justify-content: center; align-items: baseline; gap: 1rem; margin: 0.5rem 0;">
-                <h2 id="total-wealth-display" data-try="{{ total_value }}" data-usd="{{ total_value / usd_rate }}" data-eur="{{ total_value / eur_rate }}">
+                <h2 id="total-wealth-display" data-try="{{ total_value }}" data-usd="{{ total_value / usd_rate }}"
+                    data-eur="{{ total_value / eur_rate }}">
                     {{ "{:,.2f}".format(total_value) }} ₺
                 </h2>
-                <select id="wealth-currency" class="form-control" style="width: auto; padding: 0.5rem; background: rgba(255,255,255,0.05); color: inherit;">
+                <select id="wealth-currency" class="form-control"
+                    style="width: auto; padding: 0.5rem; background: rgba(255,255,255,0.05); color: inherit;">
                     <option value="TRY" style="color: black;">TRY (₺)</option>
                     <option value="USD" style="color: black;">USD ($)</option>
                     <option value="EUR" style="color: black;">EUR (€)</option>
                 </select>
             </div>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;"><span data-i18n="last_updated">Son Güncelleme:</span> {{ update_time }}</p>
+            
+            {% set profit_color = 'var(--success-color, #10b981)' if total_profit >= 0 else 'var(--danger-color, #ef4444)' %}
+            {% set profit_sign = '+' if total_profit > 0 else '' %}
+            <div style="margin-top: 1rem; margin-bottom: 0.5rem;">
+                <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.2rem;" data-i18n="total_profit">Toplam Kâr/Zarar</p>
+                <h3 id="total-profit-display" style="color: {{ profit_color }}; font-size: 1.3rem;" 
+                    data-try="{{ total_profit }}" 
+                    data-usd="{{ total_profit / usd_rate }}"
+                    data-eur="{{ total_profit / eur_rate }}">
+                    {{ profit_sign }}{{ "{:,.2f}".format(total_profit) }} ₺
+                </h3>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;"><span data-i18n="last_updated">Son
+                    Güncelleme:</span> {{ update_time }}</p>
         </div>
 
         <!-- Form Tam Genişlikte (Tablonun Üstünde) -->
         <div class="glass-card fade-in" style="animation-delay: 0.1s; margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-plus-circle"></i> <span data-i18n="add_asset">Yeni Varlık Ekle</span></h3>
+            <h3 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-plus-circle"></i> <span data-i18n="add_asset">Yeni
+                    Varlık Ekle</span></h3>
             <form id="add-asset-form" class="add-asset-form">
                 <input type="hidden" id="csrf_token" name="_csrf_token" value="{{ g.csrf_token }}">
-                
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_type">Varlık Tipi</label>
-                        <select id="asset-symbol" name="symbol" class="form-control" required style="background: var(--bg-main); color: var(--text-primary);">
+                        <label
+                            style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;"
+                            data-i18n="asset_type">Varlık Tipi</label>
+                        <select id="asset-symbol" name="symbol" class="form-control" required
+                            style="background: var(--bg-main); color: var(--text-primary);">
                             {% for symbol, info in supported.items() %}
                             <option value="{{ symbol }}" style="color: black;">{{ info.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    
+
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_amount">Miktar</label>
-                        <input type="number" step="0.01" min="0.01" id="asset-amount" name="amount" class="form-control" placeholder="10.5" required>
+                        <label
+                            style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;"
+                            data-i18n="asset_amount">Miktar</label>
+                        <input type="number" step="0.01" min="0.01" id="asset-amount" name="amount" class="form-control"
+                            placeholder="10.5" required>
                     </div>
-                    
+
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_buy_price">Toplam Ödenen Tutar</label>
+                        <label
+                            style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;"
+                            data-i18n="asset_buy_price">Toplam Ödenen Tutar</label>
                         <div style="display: flex; gap: 0.5rem;">
-                            <input type="number" step="0.01" min="0" id="asset-price" name="purchase_price" class="form-control" placeholder="32.50" required>
-                            <select id="asset-purchase-currency" name="purchase_currency" class="form-control" style="width: auto; background: var(--bg-main); color: var(--text-primary);">
+                            <input type="number" step="0.01" min="0" id="asset-price" name="purchase_price"
+                                class="form-control" placeholder="32.50" required>
+                            <select id="asset-purchase-currency" name="purchase_currency" class="form-control"
+                                style="width: auto; background: var(--bg-main); color: var(--text-primary);">
                                 <option value="TRY" style="color: black;">TRY</option>
                                 <option value="USD" style="color: black;">USD</option>
                                 <option value="EUR" style="color: black;">EUR</option>
@@ -196,99 +249,133 @@
                         </div>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn-primary" style="margin-top: 1.5rem; width: 100%; max-width: 300px; display: block; margin-left: auto; margin-right: auto;" data-i18n="btn_add_portfolio">Portföye Ekle</button>
+
+                <button type="submit" class="btn-primary"
+                    style="margin-top: 1.5rem; width: 100%; max-width: 300px; display: block; margin-left: auto; margin-right: auto;"
+                    data-i18n="btn_add_portfolio">Portföye Ekle</button>
             </form>
         </div>
 
         <!-- Tablo Tam Genişlikte -->
         <div class="glass-card fade-in" style="animation-delay: 0.2s; margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;" data-i18n="your_assets">
+            <h3 style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;"
+                data-i18n="your_assets">
                 Varlıklarınız
             </h3>
-                
-                {% if items %}
-                <div class="table-responsive">
-                    <table class="portfolio-table">
-                        <thead>
-                            <tr>
-                                <th data-i18n="th_asset">Varlık</th>
-                                <th data-i18n="th_amount">Miktar</th>
-                                <th data-i18n="th_buy_price">Alış Maliyeti</th>
-                                <th data-i18n="th_cur_price">Güncel Fiyat</th>
-                                <th data-i18n="th_tot_value">Toplam Değer</th>
-                                <th data-i18n="th_profit">Kar / Zarar</th>
-                                <th data-i18n="th_action">İşlem</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in items %}
-                            <tr>
-                                <td style="font-weight: 600;">
-                                    {% set flag_val = supported.get(item.symbol, {}).get('flag') %}
-                                    {% if flag_val in ['us', 'eu', 'gb', 'tr'] %}
-                                        <img src="https://flagcdn.com/w40/{{ flag_val }}.png" width="20" style="vertical-align: middle; margin-right: 5px; border-radius: 2px;">
-                                    {% elif flag_val == 'gold_ons' %}
-                                        <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
-                                            <circle cx="12" cy="12" r="10" fill="url(#goldGradOns)" stroke="#d35400" stroke-width="0.5" />
-                                            <defs>
-                                                <linearGradient id="goldGradOns" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stop-color="#ffeaa7" />
-                                                    <stop offset="100%" stop-color="#f1c40f" />
-                                                </linearGradient>
-                                            </defs>
-                                        </svg>
-                                    {% elif flag_val == 'gold_gram' %}
-                                        <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
-                                            <circle cx="12" cy="12" r="10" fill="#f39c12" stroke="#d35400" stroke-width="0.5" />
-                                            <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1g</text>
-                                        </svg>
-                                    {% elif flag_val == 'silver' %}
-                                        <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
-                                            <circle cx="12" cy="12" r="10" fill="url(#silverGrad)" stroke="#7f8c8d" stroke-width="0.5" />
-                                            <defs>
-                                                <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stop-color="#f5f6fa" />
-                                                    <stop offset="100%" stop-color="#bdc3c7" />
-                                                </linearGradient>
-                                            </defs>
-                                        </svg>
-                                    {% else %}
-                                        <i class="fa-solid fa-money-bill-transfer" style="margin-right: 5px; color: #10b981;"></i>
-                                    {% endif %}
-                                    {{ item.name }}
-                                </td>
-                                <td>{{ item.amount }}</td>
-                                <td>{{ "{:,.2f}".format(item.purchase_price) }} {{ item.pc_symbol }}</td>
-                                <td>{{ "{:,.2f}".format(item.current_price) }} {{ item.pc_symbol }}</td>
-                                <td style="font-weight: 600;">{{ "{:,.2f}".format(item.value_in_pc) }} {{ item.pc_symbol }}</td>
-                                <td>
-                                    <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; {% if item.profit >= 0 %}background: rgba(16, 185, 129, 0.15); color: #10b981;{% else %}background: rgba(239, 68, 68, 0.15); color: #ef4444;{% endif %}">
-                                        {% if item.profit > 0 %}+{% endif %}{{ "{:,.2f}".format(item.profit) }} {{ item.pc_symbol }} ({{ "{:,.2f}".format(item.profit_pct) }}%)
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn-danger" onclick="deleteAsset({{ item.id }})"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
-                    <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                    <p data-i18n="empty_portfolio">Portföyünüz henüz boş. Aşağıdaki formdan varlık ekleyebilirsiniz.</p>
-                </div>
-                {% endif %}
+
+            {% if items %}
+            <div class="table-responsive">
+                <table class="portfolio-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="th_asset">Varlık</th>
+                            <th data-i18n="th_amount">Miktar</th>
+                            <th data-i18n="th_buy_price">Alış Maliyeti</th>
+                            <th data-i18n="th_cur_price">Güncel Birim Fiyat</th>
+                            <th data-i18n="th_tot_value">Toplam Değer</th>
+                            <th data-i18n="th_profit">Kar / Zarar</th>
+                            <th data-i18n="th_action">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td style="font-weight: 600;">
+                                {% set flag_val = supported.get(item.symbol, {}).get('flag') %}
+                                {% if flag_val in ['us', 'eu', 'gb', 'tr'] %}
+                                <img src="https://flagcdn.com/w40/{{ flag_val }}.png" width="20"
+                                    style="vertical-align: middle; margin-right: 5px; border-radius: 2px;">
+                                {% elif flag_val == 'gold_ons' %}
+                                <svg width="20" height="20" viewBox="0 0 24 24"
+                                    style="vertical-align: middle; margin-right: 5px;">
+                                    <circle cx="12" cy="12" r="10" fill="url(#goldGradOns)" stroke="#d35400"
+                                        stroke-width="0.5" />
+                                    <defs>
+                                        <linearGradient id="goldGradOns" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#ffeaa7" />
+                                            <stop offset="100%" stop-color="#f1c40f" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                {% elif flag_val == 'gold_gram' %}
+                                <svg width="20" height="20" viewBox="0 0 24 24"
+                                    style="vertical-align: middle; margin-right: 5px;">
+                                    <circle cx="12" cy="12" r="10" fill="#f39c12" stroke="#d35400" stroke-width="0.5" />
+                                    <text x="12" y="15" font-size="8" font-family="Inter, sans-serif" font-weight="900"
+                                        fill="#fff" text-anchor="middle">1g</text>
+                                </svg>
+                                {% elif flag_val == 'ceyrek' %}
+                                <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="#f1c40f" stroke-width="2" />
+                                    <path d="M 12 12 L 12 3 A 9 9 0 0 1 21 12 Z" fill="#f39c12" />
+                                </svg>
+                                {% elif flag_val == 'yarim' %}
+                                <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="#f1c40f" stroke-width="2" />
+                                    <path d="M 12 12 L 12 3 A 9 9 0 0 1 12 21 Z" fill="#f39c12" />
+                                </svg>
+                                {% elif flag_val == 'tam' %}
+                                <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                                    <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5" />
+                                </svg>
+                                {% elif flag_val == 'cumhuriyet' %}
+                                <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                                    <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#d35400" stroke-width="0.5" />
+                                    <circle cx="10" cy="12" r="4.5" fill="#fff" />
+                                    <circle cx="11.7" cy="12" r="4" fill="#f1c40f" />
+                                    <polygon points="15.5,10.2 16.0,11.4 17.3,11.4 16.3,12.2 16.7,13.5 15.5,12.7 14.3,13.5 14.7,12.2 13.7,11.4 15.0,11.4" fill="#fff" />
+                                </svg>
+                                {% elif flag_val == 'gram_gumus' %}
+                                <svg width="20" height="20" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;">
+                                    <circle cx="12" cy="12" r="10" fill="#bdc3c7" stroke="#7f8c8d" stroke-width="0.5" />
+                                    <text x="12" y="15.5" font-size="8" font-family="Inter, sans-serif" font-weight="900" fill="#fff" text-anchor="middle">1g</text>
+                                </svg>
+                                {% else %}
+                                <i class="fa-solid fa-money-bill-transfer"
+                                    style="margin-right: 5px; color: #10b981;"></i>
+                                {% endif %}
+                                {{ item.name }}
+                            </td>
+                            <td>{{ item.amount }}</td>
+                            <td>{{ "{:,.2f}".format(item.purchase_price) }} {{ item.pc_symbol }}</td>
+                            <td>{{ "{:,.2f}".format(item.current_price) }} {{ item.pc_symbol }}</td>
+                            <td style="font-weight: 600;">{{ "{:,.2f}".format(item.value_in_pc) }} {{ item.pc_symbol }}
+                            </td>
+                            <td>
+                                <span
+                                    style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; {% if item.profit >= 0 %}background: rgba(16, 185, 129, 0.15); color: #10b981;{% else %}background: rgba(239, 68, 68, 0.15); color: #ef4444;{% endif %}">
+                                    {% if item.profit > 0 %}+{% endif %}{{ "{:,.2f}".format(item.profit) }} {{
+                                    item.pc_symbol }} ({{ "{:,.2f}".format(item.profit_pct) }}%)
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-danger" onclick="deleteAsset({{ item.id }})"><i
+                                        class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+                <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p data-i18n="empty_portfolio">Portföyünüz henüz boş. Aşağıdaki formdan varlık ekleyebilirsiniz.</p>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Grafik Tam Genişlikte (En Altta) -->
         {% if items %}
-        <div class="glass-card fade-in" style="animation-delay: 0.3s; margin-bottom: 2rem; padding: 3rem;">
-            <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-chart-pie"></i> <span data-i18n="distribution">Dağılım</span></h3>
-            <div style="position: relative; height: 520px;">
+        <div class="glass-card fade-in" style="animation-delay: 0.3s; margin-bottom: 2rem; padding: 2rem;">
+            <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-chart-pie"></i> <span
+                    data-i18n="distribution">Dağılım</span></h3>
+            <div style="position: relative; height: 420px;">
                 <canvas id="portfolioChart"></canvas>
+            </div>
+            <!-- HTML Legend - Canvas Dışında, Tam Kontrol -->
+            <div id="chart-legend"
+                style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
             </div>
         </div>
         {% endif %}
@@ -302,6 +389,7 @@
                 'nav_home': '<i class="fa-solid fa-house"></i> Anasayfa',
                 'nav_news': '<i class="fa-solid fa-newspaper"></i> Haberler',
                 'nav_portfolio': '<i class="fa-solid fa-wallet"></i> Portföyüm',
+                'nav_profile': '<i class="fa-solid fa-user"></i> Profilim',
                 'nav_contact': '<i class="fa-solid fa-envelope"></i> İletişim',
                 'nav_login': '<i class="fa-solid fa-sign-in-alt"></i> Giriş Yap',
                 'nav_logout': '<i class="fa-solid fa-sign-out-alt"></i> Çıkış Yap',
@@ -309,7 +397,7 @@
                 'last_updated': 'Son Güncelleme:',
                 'your_assets': 'Varlıklarınız',
                 'th_asset': 'Varlık', 'th_amount': 'Miktar', 'th_buy_price': 'Alış Maliyeti',
-                'th_cur_price': 'Güncel Fiyat', 'th_tot_value': 'Toplam Değer',
+                'th_cur_price': 'Güncel Birim Fiyat', 'th_tot_value': 'Toplam Değer',
                 'th_profit': 'Kar / Zarar', 'th_action': 'İşlem',
                 'empty_portfolio': 'Portföyünüz henüz boş. Aşağıdaki formdan varlık ekleyebilirsiniz.',
                 'add_asset': 'Yeni Varlık Ekle',
@@ -328,7 +416,7 @@
                 'last_updated': 'Last Updated:',
                 'your_assets': 'Your Assets',
                 'th_asset': 'Asset', 'th_amount': 'Amount', 'th_buy_price': 'Buy Cost',
-                'th_cur_price': 'Current Price', 'th_tot_value': 'Total Value',
+                'th_cur_price': 'Current Unit Price', 'th_tot_value': 'Total Value',
                 'th_profit': 'Profit / Loss', 'th_action': 'Action',
                 'empty_portfolio': 'Your portfolio is empty. You can add assets from the form below.',
                 'add_asset': 'Add New Asset',
@@ -342,13 +430,32 @@
         // Currency Toggle Logic
         const currencySelect = document.getElementById('wealth-currency');
         const wealthDisplay = document.getElementById('total-wealth-display');
-        
+        const profitDisplay = document.getElementById('total-profit-display');
+
         if (currencySelect && wealthDisplay) {
             currencySelect.addEventListener('change', (e) => {
                 const currency = e.target.value;
-                const value = parseFloat(wealthDisplay.getAttribute('data-' + currency.toLowerCase()));
                 const formatter = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: currency });
-                wealthDisplay.innerText = formatter.format(value);
+                
+                // Update total wealth
+                const wealthValue = parseFloat(wealthDisplay.getAttribute('data-' + currency.toLowerCase()));
+                wealthDisplay.innerText = formatter.format(wealthValue);
+                
+                // Update total profit
+                if (profitDisplay) {
+                    const profitValue = parseFloat(profitDisplay.getAttribute('data-' + currency.toLowerCase()));
+                    const formattedProfit = formatter.format(profitValue);
+                    const sign = profitValue > 0 ? '+' : '';
+                    // The formatter might put negative sign itself, but let's ensure we use the sign logic nicely.
+                    // If profitValue is negative, formattedProfit already includes a minus sign.
+                    profitDisplay.innerText = profitValue > 0 ? '+' + formattedProfit : formattedProfit;
+                    
+                    if (profitValue >= 0) {
+                        profitDisplay.style.color = 'var(--success-color, #10b981)';
+                    } else {
+                        profitDisplay.style.color = 'var(--danger-color, #ef4444)';
+                    }
+                }
             });
         }
 
@@ -366,13 +473,13 @@
         document.getElementById('add-asset-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
-            
+
             try {
                 const response = await fetch('/api/portfolio', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     window.location.reload();
@@ -387,17 +494,17 @@
         // Varlık Silme
         async function deleteAsset(id) {
             if (!confirm('Bu varlığı silmek istediğinize emin misiniz?')) return;
-            
+
             const formData = new FormData();
             formData.append('item_id', id);
             formData.append('_csrf_token', document.getElementById('csrf_token').value);
-            
+
             try {
                 const response = await fetch('/api/portfolio', {
                     method: 'DELETE',
                     body: formData
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     window.location.reload();
@@ -411,143 +518,186 @@
 
         {% if items %}
         let portfolioChart = null;
-        
-        window.renderChart = function() {
+
+        window.renderChart = function () {
             const chartCanvas = document.getElementById('portfolioChart');
             if (!chartCanvas) return;
-            
+
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
             const textColor = currentTheme === 'dark' ? '#f3f4f6' : '#1f2937';
 
             const ctx = chartCanvas.getContext('2d');
             const dataLabels = [
                 {% for item in items %}
-                    "{{ item.name }}"{% if not loop.last %},{% endif %}
-                {% endfor %}
+        "{{ item.name }}"{% if not loop.last %}, {% endif %}
+        {% endfor %}
             ];
-            
-            const dataValues = [
-                {% for item in items %}
-                    {{ item.value_try }}{% if not loop.last %},{% endif %}
-                {% endfor %}
+
+        const dataValues = [
+            {% for item in items %}
+        {{ item.value_try }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
             ];
-            
-            const bgColors = [
-                '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e'
-            ];
-            
-            if (dataValues.length === 0) return;
-            
-            if (portfolioChart) {
-                portfolioChart.destroy();
-            }
-            
-            // Özel Eklenti: Çizgilerle yüzdelikleri dışarıda göster
-            const outLabelsPlugin = {
-                id: 'outLabels',
-                afterDraw: (chart) => {
-                    const ctx = chart.ctx;
-                    const dataset = chart.data.datasets[0];
-                    const meta = chart.getDatasetMeta(0);
-                    const data = dataset.data;
-                    const total = data.reduce((a, b) => a + b, 0);
-                    
-                    if (total === 0) return;
-                    
-                    ctx.save();
-                    meta.data.forEach((arc, i) => {
-                        const val = data[i];
-                        const percentage = (val / total) * 100;
-                        if (percentage < 1.5) return; // Çok küçük dilimleri gizle
-                        
-                        const angle = (arc.startAngle + arc.endAngle) / 2;
-                        const radius = arc.outerRadius;
-                        const x = arc.x;
-                        const y = arc.y;
-                        
-                        const edgeX = x + Math.cos(angle) * radius;
-                        const edgeY = y + Math.sin(angle) * radius;
-                        
-                        const lineLen = 30;
-                        const outX = x + Math.cos(angle) * (radius + lineLen);
-                        const outY = y + Math.sin(angle) * (radius + lineLen);
-                        
-                        const isRight = Math.cos(angle) >= 0;
-                        const endX = isRight ? outX + 25 : outX - 25;
-                        
-                        ctx.beginPath();
-                        ctx.moveTo(edgeX, edgeY);
-                        ctx.lineTo(outX, outY);
-                        ctx.lineTo(endX, outY);
-                        ctx.strokeStyle = dataset.backgroundColor[i];
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-                        
+
+        const bgColors = [
+            '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e'
+        ];
+
+        if (dataValues.length === 0) return;
+
+        if (portfolioChart) {
+            portfolioChart.destroy();
+        }
+
+        // Özel Eklenti: Çizgilerle yüzdelikleri dışarıda göster
+        const outLabelsPlugin = {
+            id: 'outLabels',
+            afterDraw: (chart) => {
+                const ctx = chart.ctx;
+                const dataset = chart.data.datasets[0];
+                const meta = chart.getDatasetMeta(0);
+                const data = dataset.data;
+                const total = data.reduce((a, b) => a + b, 0);
+                const canvasW = chart.canvas.offsetWidth;
+                const canvasH = chart.canvas.offsetHeight;
+                const pad = 20; // kenara min mesafe
+
+                if (total === 0) return;
+
+                let lastRightY = -999;
+                let lastLeftY = 9999;
+
+                ctx.save();
+                meta.data.forEach((arc, i) => {
+                    const val = data[i];
+                    const percentage = (val / total) * 100;
+                    if (percentage <= 0) return;
+
+                    const angle = (arc.startAngle + arc.endAngle) / 2;
+                    const radius = arc.outerRadius;
+                    const x = arc.x;
+                    const y = arc.y;
+                    const text = percentage.toFixed(1) + '%';
+
+                    // %80'den büyük dilimlerde veya tek dilimde etiketi ortaya yaz
+                    if (percentage >= 80) {
                         ctx.fillStyle = textColor;
-                        ctx.font = '900 16px "Inter", sans-serif';
-                        ctx.textAlign = isRight ? 'left' : 'right';
+                        ctx.font = '900 18px "Inter", sans-serif';
+                        ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        
-                        ctx.fillText(percentage.toFixed(1) + '%', isRight ? endX + 5 : endX - 5, outY);
-                    });
-                    ctx.restore();
-                }
-            };
-            
-            portfolioChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: dataLabels,
-                    datasets: [{
-                        data: dataValues,
-                        backgroundColor: bgColors.slice(0, dataValues.length),
-                        borderWidth: 0
-                    }]
-                },
-                plugins: [outLabelsPlugin],
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            top: 70,
-                            bottom: 110,
-                            left: 80,
-                            right: 80
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 30,
-                                color: textColor,
-                                font: {
-                                    family: "'Inter', sans-serif"
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        // Toplam değere göre yüzde hesapla
-                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        let percentage = ((context.parsed / total) * 100).toFixed(1) + '%';
-                                        label += new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(context.parsed) + ' (' + percentage + ')';
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '70%'
-                }
+                        ctx.fillText(text, x, y);
+                        return;
+                    }
+
+                    const lineLen = 28;
+                    let outX = x + Math.cos(angle) * (radius + lineLen);
+                    let outY = y + Math.sin(angle) * (radius + lineLen);
+
+                    const isRight = Math.cos(angle) >= 0;
+
+                    // Çarpışma önleme (Collision detection)
+                    if (isRight) {
+                        if (outY < lastRightY + 24) outY = lastRightY + 24;
+                    } else {
+                        if (outY > lastLeftY - 24) outY = lastLeftY - 24;
+                    }
+
+                    // Canvas sınırları içinde tut (clamp)
+                    outY = Math.max(pad, Math.min(canvasH - pad, outY));
+                    outX = Math.max(pad, Math.min(canvasW - pad, outX));
+
+                    // Sınırlandırmadan sonra son pozisyonu kaydet
+                    if (isRight) lastRightY = outY;
+                    else lastLeftY = outY;
+
+                    const endX = isRight
+                        ? Math.min(canvasW - pad, outX + 22)
+                        : Math.max(pad, outX - 22);
+
+                    const edgeX = x + Math.cos(angle) * radius;
+                    const edgeY = y + Math.sin(angle) * radius;
+
+                    ctx.beginPath();
+                    ctx.moveTo(edgeX, edgeY);
+                    ctx.lineTo(outX, outY);
+                    ctx.lineTo(endX, outY);
+                    ctx.strokeStyle = dataset.backgroundColor[i];
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    ctx.fillStyle = textColor;
+                    ctx.font = '700 14px "Inter", sans-serif';
+                    ctx.textAlign = isRight ? 'left' : 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(text, isRight ? endX + 4 : endX - 4, outY);
+                });
+                ctx.restore();
+            }
+        };
+
+        // Legend HTML'ini doldur - canvas d\u0131\u015f\u0131nda ferah bir yerde
+        function buildHtmlLegend(labels, colors) {
+            const container = document.getElementById('chart-legend');
+            if (!container) return;
+            container.innerHTML = '';
+            labels.forEach((label, i) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:0.9rem; font-weight:500;';
+                item.innerHTML = `<span style="display:inline-block; width:14px; height:14px; border-radius:3px; background:${colors[i]}; flex-shrink:0;"></span><span>${label}</span>`;
+                container.appendChild(item);
             });
+        }
+
+        portfolioChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: dataLabels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: bgColors.slice(0, dataValues.length),
+                    borderWidth: 0
+                }]
+            },
+            plugins: [outLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 70,
+                        bottom: 30,
+                        left: 80,
+                        right: 80
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    // Toplam değere göre yüzde hesapla
+                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    let percentage = ((context.parsed / total) * 100).toFixed(1) + '%';
+                                    label += new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(context.parsed) + ' (' + percentage + ')';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // Legend kutularını canvas dışındaki HTML div'e yerleştir
+        buildHtmlLegend(dataLabels, bgColors.slice(0, dataLabels.length));
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -556,4 +706,5 @@
         {% endif %}
     </script>
 </body>
+
 </html>
