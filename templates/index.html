@@ -217,7 +217,7 @@
                 </div>
 
                 <div class="rate-value" id="rate-{{ item.symbol }}">{{
-                    ("%%.%df"|format(item.precision))|format(item.rate|float) }}</div>
+                    ("%%.%df"|format(item.precision))|format(item.rate|float) }} {{ item.currency_symbol }}</div>
 
                 <div>
                     <span class="rate-badge {% if item.change|float >= 0 %}rate-up{% else %}rate-down{% endif %}"
