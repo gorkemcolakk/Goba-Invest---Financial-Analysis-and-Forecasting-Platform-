@@ -93,9 +93,43 @@
             font-size: 0.9rem;
             text-align: center;
         }
+        .auth-topbar {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            right: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-btn:hover {
+            color: var(--accent-main);
+        }
     </style>
 </head>
 <body class="light-mode">
+    <div class="auth-topbar">
+        <a href="/" class="back-btn" data-i18n="back_btn"><i class="fa-solid fa-arrow-left"></i> Piyasaya Dön</a>
+        <div style="display: flex; gap: 1rem;">
+            <div class="lang-switch" id="lang-toggle" style="background: var(--card-bg);">
+                <i class="fa-solid fa-globe"></i>
+                <span id="lang-text">TR</span>
+            </div>
+            <div class="theme-switch" id="theme-toggle" title="Tema Değiştir" style="background: var(--card-bg);">
+                <i class="fa-solid fa-sun"></i>
+                <i class="fa-solid fa-moon"></i>
+            </div>
+        </div>
+    </div>
     <div class="auth-container">
         <div class="auth-card fade-in">
             <div class="auth-header">
@@ -103,7 +137,7 @@
                     <div class="logo-symbol" style="margin: 0 auto 1rem auto; width: 48px; height: 48px; font-size: 1.2rem;"><i class="fa-solid fa-chart-line"></i></div>
                     <span class="logo-text" style="font-size: 1.5rem;">GOBA<span>INVEST</span></span>
                 </a>
-                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Portföyünüzü yönetmek için giriş yapın</p>
+                <p id="auth-desc" style="color: var(--text-secondary); margin-top: 0.5rem;">Portföyünüzü yönetmek için giriş yapın</p>
             </div>
             
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -134,5 +168,69 @@
             </div>
         </div>
     </div>
+    <script>
+        // Tema Yönetimi
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const icon = themeToggle.querySelector('i');
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            body.className = 'dark-mode';
+            icon.className = 'fa-solid fa-sun';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = body.classList.contains('dark-mode');
+            body.className = isDark ? 'light-mode' : 'dark-mode';
+            icon.className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        });
+
+        // Dil Yönetimi
+        const langToggle = document.getElementById('lang-toggle');
+        const langText = document.getElementById('lang-text');
+        
+        const translations = {
+            'tr': {
+                'back_btn': '<i class="fa-solid fa-arrow-left"></i> Piyasaya Dön',
+                'title': 'Portföyünüzü yönetmek için giriş yapın',
+                'username': 'Kullanıcı Adı / E-posta',
+                'password': 'Şifre',
+                'login_btn': 'Giriş Yap',
+                'no_account': 'Hesabınız yok mu? <a href="/register">Hemen Kayıt Olun</a>'
+            },
+            'en': {
+                'back_btn': '<i class="fa-solid fa-arrow-left"></i> Back to Market',
+                'title': 'Login to manage your portfolio',
+                'username': 'Username / Email',
+                'password': 'Password',
+                'login_btn': 'Login',
+                'no_account': 'Don\'t have an account? <a href="/register">Register Now</a>'
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'tr';
+        
+        function applyLang(lang) {
+            document.documentElement.lang = lang;
+            langText.innerText = lang.toUpperCase();
+            
+            document.querySelector('[data-i18n="back_btn"]').innerHTML = translations[lang]['back_btn'];
+            document.getElementById('auth-desc').innerText = translations[lang]['title'];
+            document.querySelector('label[for="username"]').innerText = translations[lang]['username'];
+            document.querySelector('label[for="password"]').innerText = translations[lang]['password'];
+            document.querySelector('button[type="submit"]').innerText = translations[lang]['login_btn'];
+            document.querySelector('.auth-footer').innerHTML = translations[lang]['no_account'];
+        }
+
+        langToggle.addEventListener('click', () => {
+            currentLang = currentLang === 'tr' ? 'en' : 'tr';
+            localStorage.setItem('lang', currentLang);
+            applyLang(currentLang);
+        });
+
+        if (currentLang === 'en') applyLang('en');
+    </script>
 </body>
 </html>
