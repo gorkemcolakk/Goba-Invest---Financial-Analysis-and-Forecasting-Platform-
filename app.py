@@ -407,12 +407,9 @@ _NEWS_CACHE = {
 }
 
 # Çoklu RSS kaynak listesi — biri çalışmazsa diğerine geçilir
+# lang: 'tr' olanlar Türkçe, 'en' olanlar İngilizce kaynaklardır
 NEWS_FEEDS = [
-    {
-        "url": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse",
-        "source": "MarketWatch",
-        "lang": "en"
-    },
+    # ─── Küresel İngilizce Kaynaklar ───
     {
         "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
         "source": "BBC Business",
@@ -424,14 +421,40 @@ NEWS_FEEDS = [
         "lang": "en"
     },
     {
-        "url": "https://www.investing.com/rss/news_301.rss",
-        "source": "Investing.com",
-        "lang": "en"
-    },
-    {
         "url": "https://www.forexlive.com/feed/news",
         "source": "ForexLive",
         "lang": "en"
+    },
+    {
+        "url": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse",
+        "source": "MarketWatch",
+        "lang": "en"
+    },
+    {
+        "url": "https://www.investing.com/rss/news_301.rss",
+        "source": "Investing.com EN",
+        "lang": "en"
+    },
+    # ─── Türkçe / Türkiye Kaynakları ───
+    {
+        "url": "https://tr.investing.com/rss/news_301.rss",
+        "source": "Investing.com TR",
+        "lang": "tr"
+    },
+    {
+        "url": "https://www.bloomberght.com/rss",
+        "source": "Bloomberg HT",
+        "lang": "tr"
+    },
+    {
+        "url": "https://bigpara.hurriyet.com.tr/rss/",
+        "source": "BigPara",
+        "lang": "tr"
+    },
+    {
+        "url": "https://www.milliyet.com.tr/rss/rssNew/ekonomiRss.xml",
+        "source": "Milliyet Ekonomi",
+        "lang": "tr"
     },
 ]
 
@@ -450,22 +473,40 @@ def _parse_date(entry) -> datetime:
     return datetime.utcnow()
 
 
-def _classify_tag(title: str, summary: str) -> str:
+def _classify_tag(title: str, summary: str, feed_lang: str = "en") -> str:
     """Haber başlığına/özetine göre otomatik etiket atar."""
     text = (title + " " + summary).lower()
-    if any(k in text for k in ["gold", "silver", "altın", "gümüş", "commodity", "emtia"]):
+    # Emtia
+    if any(k in text for k in ["gold", "silver", "altın", "gümüş", "commodity", "emtia",
+                                "petrol", "oil", "copper", "bakır", "platinum"]):
         return "Emtia"
-    if any(k in text for k in ["fed", "ecb", "central bank", "merkez bankası", "interest rate", "faiz"]):
+    # Merkez Bankası
+    if any(k in text for k in ["fed", "ecb", "central bank", "merkez bankası", "tcmb",
+                                "interest rate", "faiz", "monetary policy", "para politikası",
+                                "rate cut", "rate hike", "boe", "bank of england"]):
         return "Merkez Bankası"
-    if any(k in text for k in ["inflation", "enflasyon", "cpi", "gdp", "gsyih"]):
+    # Ekonomi / Makro
+    if any(k in text for k in ["inflation", "enflasyon", "cpi", "gdp", "gsyih", "büyüme",
+                                "recession", "durgunluk", "unemployment", "işsizlik",
+                                "trade deficit", "cari açık", "budget", "bütçe"]):
         return "Ekonomi"
-    if any(k in text for k in ["dollar", "euro", "sterling", "forex", "currency", "dolar", "döviz"]):
+    # Döviz
+    if any(k in text for k in ["dollar", "euro", "sterling", "forex", "currency", "dolar",
+                                "döviz", "exchange rate", "kur", "usd", "eur", "gbp",
+                                "yen", "yuan", "lira", "tl ", "try"]):
         return "Döviz"
-    if any(k in text for k in ["stock", "market", "s&p", "nasdaq", "borsa", "hisse"]):
-        return "Piyasalar"
-    if any(k in text for k in ["turkey", "turkish", "türkiye", "tcmb"]):
+    # Türkiye özeli — Türkçe kaynakları ve Türkiye anahtar kelimeleri
+    if feed_lang == "tr" or any(k in text for k in ["turkey", "turkish", "türkiye", "istanbul",
+                                                      "borsa istanbul", "bist", "hazine",
+                                                      "tcmb", "türk lirası"]):
         return "Türkiye"
-    if any(k in text for k in ["analysis", "analiz", "report", "rapor", "forecast", "tahmin"]):
+    # Piyasalar / Borsa
+    if any(k in text for k in ["stock", "market", "s&p", "s\u0026p", "nasdaq", "dow", "borsa", "hisse",
+                                "equit", "index", "endeks", "ipo", "shares"]):
+        return "Piyasalar"
+    # Analiz
+    if any(k in text for k in ["analysis", "analiz", "report", "rapor", "forecast",
+                                "tahmin", "outlook", "görünüm", "review"]):
         return "Analiz"
     return "Global"
 
@@ -478,7 +519,8 @@ def _tag_color(tag: str) -> str:
 
 def fetch_news(force_refresh: bool = False) -> list:
     """RSS feed'lerinden finans haberlerini çeker. Cache geçerliyse cache'den döner."""
-    now = datetime.utcnow()
+    now_utc = datetime.utcnow()
+    TR_OFFSET = timedelta(hours=3)  # UTC+3 (Türkiye)
     cache = _NEWS_CACHE
 
     # Cache geçerliyse döndür
@@ -486,13 +528,13 @@ def fetch_news(force_refresh: bool = False) -> list:
         not force_refresh
         and cache["last_updated"]
         and cache["articles"]
-        and (now - cache["last_updated"]).total_seconds() < cache["ttl_seconds"]
+        and (now_utc - cache["last_updated"]).total_seconds() < cache["ttl_seconds"]
     ):
         logger.debug("Returning news from cache.")
         return cache["articles"]
 
     logger.info("Fetching fresh news from RSS feeds...")
-    one_month_ago = now - timedelta(days=30)
+    one_week_ago = now_utc - timedelta(days=7)  # Son 7 gün
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; GOBA-Invest-Bot/1.0; +https://goba-invest.onrender.com)",
         "Accept": "application/rss+xml, application/xml, text/xml, */*"
@@ -501,7 +543,14 @@ def fetch_news(force_refresh: bool = False) -> list:
     all_articles = []
     seen_titles = set()
 
+    months_tr = {
+        1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan",
+        5: "Mayıs", 6: "Haziran", 7: "Temmuz", 8: "Ağustos",
+        9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
+    }
+
     for feed_cfg in NEWS_FEEDS:
+        feed_lang = feed_cfg.get("lang", "en")
         try:
             resp = requests.get(feed_cfg["url"], headers=headers, timeout=10)
             resp.raise_for_status()
@@ -525,36 +574,34 @@ def fetch_news(force_refresh: bool = False) -> list:
                     summary = summary[:277] + "..."
 
                 link = getattr(entry, "link", "#") or "#"
-                pub_date = _parse_date(entry)
+                pub_date_utc = _parse_date(entry)  # UTC
 
-                # Son 1 ay filtresi
-                if pub_date < one_month_ago:
+                # Son 7 gün filtresi (UTC bazında)
+                if pub_date_utc < one_week_ago:
                     continue
 
-                tag = _classify_tag(title, summary)
+                # Gösterim tarihi: UTC+3 (Türkiye saati)
+                pub_date_tr = pub_date_utc + TR_OFFSET
+
+                tag = _classify_tag(title, summary, feed_lang)
                 tag_color = _tag_color(tag)
 
-                # Tarihi Türkçe formatta hazırla
-                months_tr = {
-                    1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan",
-                    5: "Mayıs", 6: "Haziran", 7: "Temmuz", 8: "Ağustos",
-                    9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
-                }
-                date_tr = f"{pub_date.day} {months_tr[pub_date.month]} {pub_date.year}"
-                date_en = pub_date.strftime("%b %d, %Y")
-                date_iso = pub_date.strftime("%Y-%m-%dT%H:%M:%S")
+                date_tr = f"{pub_date_tr.day} {months_tr[pub_date_tr.month]} {pub_date_tr.year}, {pub_date_tr.strftime('%H:%M')}"
+                date_en = pub_date_tr.strftime("%b %d, %Y %H:%M")
+                date_iso = pub_date_tr.strftime("%Y-%m-%dT%H:%M:%S")
 
                 all_articles.append({
                     "title": title,
                     "summary": summary,
                     "link": link,
                     "source": feed_cfg["source"],
+                    "lang": feed_lang,
                     "tag": tag,
                     "tag_color": tag_color,
                     "date_tr": date_tr,
                     "date_en": date_en,
                     "date_iso": date_iso,
-                    "pub_timestamp": pub_date.timestamp()
+                    "pub_timestamp": pub_date_utc.timestamp()
                 })
                 seen_titles.add(title)
                 count += 1
@@ -568,12 +615,12 @@ def fetch_news(force_refresh: bool = False) -> list:
     # Tarihe göre sırala (en yeni önce)
     all_articles.sort(key=lambda x: x["pub_timestamp"], reverse=True)
 
-    # En fazla 50 haber göster
-    all_articles = all_articles[:50]
+    # En fazla 60 haber göster
+    all_articles = all_articles[:60]
 
     if all_articles:
         cache["articles"] = all_articles
-        cache["last_updated"] = now
+        cache["last_updated"] = now_utc
         logger.info(f"News cache updated: {len(all_articles)} articles.")
     else:
         logger.warning("No articles fetched from any feed. Keeping stale cache if available.")
@@ -730,8 +777,12 @@ def api_rates():
 @app.route('/news')
 def news():
     articles = fetch_news()
-    last_updated = _NEWS_CACHE.get("last_updated")
-    last_updated_str = last_updated.strftime("%d.%m.%Y %H:%M") if last_updated else "-"
+    last_updated_utc = _NEWS_CACHE.get("last_updated")
+    if last_updated_utc:
+        last_updated_tr = last_updated_utc + timedelta(hours=3)
+        last_updated_str = last_updated_tr.strftime("%d.%m.%Y %H:%M")
+    else:
+        last_updated_str = "-"
     return render_template('news.html', articles=articles, last_updated=last_updated_str, article_count=len(articles))
 
 
@@ -740,11 +791,16 @@ def api_news():
     """Haberleri JSON olarak döndürür. force=1 parametresiyle cache bypass edilir."""
     force = request.args.get('force', '0') == '1'
     articles = fetch_news(force_refresh=force)
-    last_updated = _NEWS_CACHE.get("last_updated")
+    last_updated_utc = _NEWS_CACHE.get("last_updated")
+    if last_updated_utc:
+        last_updated_tr = last_updated_utc + timedelta(hours=3)
+        last_updated_iso = last_updated_tr.strftime("%Y-%m-%dT%H:%M:%S")
+    else:
+        last_updated_iso = None
     return jsonify({
         "articles": articles,
         "count": len(articles),
-        "last_updated": last_updated.strftime("%Y-%m-%dT%H:%M:%S") if last_updated else None,
+        "last_updated": last_updated_iso,
         "cache_ttl_seconds": _NEWS_CACHE["ttl_seconds"]
     })
 

@@ -259,15 +259,20 @@
 
         <!-- Filtre Butonları -->
         <div class="filter-bar" id="filter-bar">
-            <button class="filter-btn active" data-filter="all" onclick="filterNews('all', this)" data-i18n-filter="filter_all">Tümü</button>
-            <button class="filter-btn" data-filter="Döviz" onclick="filterNews('Döviz', this)">Döviz</button>
-            <button class="filter-btn" data-filter="Emtia" onclick="filterNews('Emtia', this)">Emtia</button>
-            <button class="filter-btn" data-filter="Ekonomi" onclick="filterNews('Ekonomi', this)">Ekonomi</button>
-            <button class="filter-btn" data-filter="Merkez Bankası" onclick="filterNews('Merkez Bankası', this)">Merkez Bankası</button>
-            <button class="filter-btn" data-filter="Piyasalar" onclick="filterNews('Piyasalar', this)">Piyasalar</button>
-            <button class="filter-btn" data-filter="Türkiye" onclick="filterNews('Türkiye', this)">Türkiye</button>
-            <button class="filter-btn" data-filter="Analiz" onclick="filterNews('Analiz', this)">Analiz</button>
-            <button class="filter-btn" data-filter="Global" onclick="filterNews('Global', this)">Global</button>
+            <!-- Kategori filtreleri -->
+            <button class="filter-btn active" data-filter="all" data-filter-type="tag" onclick="filterNews('all', 'tag', this)">Tümü</button>
+            <button class="filter-btn" data-filter="Döviz" data-filter-type="tag" onclick="filterNews('Döviz', 'tag', this)">Döviz</button>
+            <button class="filter-btn" data-filter="Emtia" data-filter-type="tag" onclick="filterNews('Emtia', 'tag', this)">Emtia</button>
+            <button class="filter-btn" data-filter="Ekonomi" data-filter-type="tag" onclick="filterNews('Ekonomi', 'tag', this)">Ekonomi</button>
+            <button class="filter-btn" data-filter="Merkez Bankası" data-filter-type="tag" onclick="filterNews('Merkez Bankası', 'tag', this)">Merkez Bankası</button>
+            <button class="filter-btn" data-filter="Piyasalar" data-filter-type="tag" onclick="filterNews('Piyasalar', 'tag', this)">Piyasalar</button>
+            <button class="filter-btn" data-filter="Türkiye" data-filter-type="tag" onclick="filterNews('Türkiye', 'tag', this)">🇹🇷 Türkiye</button>
+            <button class="filter-btn" data-filter="Analiz" data-filter-type="tag" onclick="filterNews('Analiz', 'tag', this)">Analiz</button>
+            <button class="filter-btn" data-filter="Global" data-filter-type="tag" onclick="filterNews('Global', 'tag', this)">Global</button>
+            <!-- Dil ayırıcı -->
+            <span style="width:1px; background:var(--glass-border); margin:0 4px; align-self:stretch;"></span>
+            <button class="filter-btn" data-filter="tr" data-filter-type="lang" onclick="filterNews('tr', 'lang', this)">🇹🇷 Türkçe</button>
+            <button class="filter-btn" data-filter="en" data-filter-type="lang" onclick="filterNews('en', 'lang', this)">🇬🇧 İngilizce</button>
         </div>
 
         <!-- Haber Grid -->
@@ -279,13 +284,17 @@
                    rel="noopener noreferrer"
                    class="news-card"
                    data-tag="{{ article.tag }}"
+                   data-lang="{{ article.lang }}"
                    style="animation-delay: {{ loop.index0 * 0.04 }}s;">
                     <div>
                         <div class="news-card-header">
                             <span class="rate-badge {{ article.tag_color }}"
                                   style="width: fit-content;">{{ article.tag }}</span>
-                            <span style="font-size:0.75rem; color:var(--text-secondary);">
-                                <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>
+                            <span style="font-size:0.75rem; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">
+                                <span title="{{ 'Türkçe kaynak' if article.lang == 'tr' else 'English source' }}">
+                                    {{ '🇹🇷' if article.lang == 'tr' else '🇬🇧' }}
+                                </span>
+                                <i class="fa-regular fa-calendar"></i>
                                 <span class="news-date-tr">{{ article.date_tr }}</span>
                                 <span class="news-date-en" style="display:none;">{{ article.date_en }}</span>
                             </span>
@@ -402,17 +411,23 @@
         updateClock();
 
         // ── Filtre ───────────────────────────────────────────────────────────
-        function filterNews(tag, btn) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        // Aktif filtre durumunu izle
+        let activeTag = 'all';
+        let activeLang = 'all';
+
+        function filterNews(value, type, btn) {
+            // Butonu aktif yap (aynı tip butonlardaki aktifliği kaldır)
+            document.querySelectorAll(`.filter-btn[data-filter-type="${type}"]`).forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
+
+            if (type === 'tag') activeTag = value;
+            else if (type === 'lang') activeLang = value;
 
             const cards = document.querySelectorAll('#news-grid .news-card');
             cards.forEach(card => {
-                if (tag === 'all' || card.dataset.tag === tag) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
+                const tagMatch = activeTag === 'all' || card.dataset.tag === activeTag;
+                const langMatch = activeLang === 'all' || card.dataset.lang === activeLang;
+                card.style.display = (tagMatch && langMatch) ? 'flex' : 'none';
             });
         }
 
