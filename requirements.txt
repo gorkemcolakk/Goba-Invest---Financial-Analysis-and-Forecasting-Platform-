@@ -6,3 +6,4 @@ plotly>=5.17
 yfinance>=0.2
 holidays>=0.37
 python-dotenv>=1.0
+gunicorn>=21.2
