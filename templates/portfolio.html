@@ -287,7 +287,7 @@
         {% if items %}
         <div class="glass-card fade-in" style="animation-delay: 0.3s; margin-bottom: 2rem;">
             <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-chart-pie"></i> <span data-i18n="distribution">Dağılım</span></h3>
-            <div style="position: relative; height: 380px;">
+            <div style="position: relative; height: 450px;">
                 <canvas id="portfolioChart"></canvas>
             </div>
         </div>
@@ -468,12 +468,12 @@
                         const edgeX = x + Math.cos(angle) * radius;
                         const edgeY = y + Math.sin(angle) * radius;
                         
-                        const lineLen = 20;
+                        const lineLen = 40;
                         const outX = x + Math.cos(angle) * (radius + lineLen);
                         const outY = y + Math.sin(angle) * (radius + lineLen);
                         
                         const isRight = Math.cos(angle) >= 0;
-                        const endX = isRight ? outX + 10 : outX - 10;
+                        const endX = isRight ? outX + 25 : outX - 25;
                         
                         ctx.beginPath();
                         ctx.moveTo(edgeX, edgeY);
@@ -484,7 +484,7 @@
                         ctx.stroke();
                         
                         ctx.fillStyle = textColor;
-                        ctx.font = 'bold 13px "Inter", sans-serif';
+                        ctx.font = '900 15px "Inter", sans-serif';
                         ctx.textAlign = isRight ? 'left' : 'right';
                         ctx.textBaseline = 'middle';
                         
@@ -511,16 +511,16 @@
                     layout: {
                         padding: {
                             top: 40,
-                            bottom: 20,
-                            left: 45,
-                            right: 45
+                            bottom: 50,
+                            left: 55,
+                            right: 55
                         }
                     },
                     plugins: {
                         legend: {
                             position: 'bottom',
                             labels: {
-                                padding: 20,
+                                padding: 30,
                                 color: textColor,
                                 font: {
                                     family: "'Inter', sans-serif"
