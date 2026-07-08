@@ -163,8 +163,46 @@
             <p style="color: var(--text-secondary); font-size: 0.9rem;"><span data-i18n="last_updated">Son Güncelleme:</span> {{ update_time }}</p>
         </div>
 
-        <!-- Tablo Tam Genişlikte -->
+        <!-- Form Tam Genişlikte (Tablonun Üstünde) -->
         <div class="glass-card fade-in" style="animation-delay: 0.1s; margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-plus-circle"></i> <span data-i18n="add_asset">Yeni Varlık Ekle</span></h3>
+            <form id="add-asset-form" class="add-asset-form">
+                <input type="hidden" id="csrf_token" name="_csrf_token" value="{{ g.csrf_token }}">
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_type">Varlık Tipi</label>
+                        <select id="asset-symbol" name="symbol" class="form-control" required style="background: var(--bg-main); color: var(--text-primary);">
+                            {% for symbol, info in supported.items() %}
+                            <option value="{{ symbol }}" style="color: black;">{{ info.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_amount">Miktar</label>
+                        <input type="number" step="0.01" min="0.01" id="asset-amount" name="amount" class="form-control" placeholder="10.5" required>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_buy_price">Toplam Ödenen Tutar</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" step="0.01" min="0" id="asset-price" name="purchase_price" class="form-control" placeholder="32.50" required>
+                            <select id="asset-purchase-currency" name="purchase_currency" class="form-control" style="width: auto; background: var(--bg-main); color: var(--text-primary);">
+                                <option value="TRY" style="color: black;">TRY</option>
+                                <option value="USD" style="color: black;">USD</option>
+                                <option value="EUR" style="color: black;">EUR</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary" style="margin-top: 1.5rem; width: 100%; max-width: 300px; display: block; margin-left: auto; margin-right: auto;" data-i18n="btn_add_portfolio">Portföye Ekle</button>
+            </form>
+        </div>
+
+        <!-- Tablo Tam Genişlikte -->
+        <div class="glass-card fade-in" style="animation-delay: 0.2s; margin-bottom: 2rem;">
             <h3 style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;" data-i18n="your_assets">
                 Varlıklarınız
             </h3>
@@ -245,55 +283,15 @@
                 {% endif %}
         </div>
 
-        <!-- Alt Grid: Form ve Grafik -->
-        <div class="portfolio-grid fade-in" style="animation-delay: 0.2s;">
-            <!-- Sol: Form -->
-            <div class="glass-card">
-                <h3 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-plus-circle"></i> <span data-i18n="add_asset">Yeni Varlık Ekle</span></h3>
-                <form id="add-asset-form" class="add-asset-form">
-                    <input type="hidden" id="csrf_token" name="_csrf_token" value="{{ g.csrf_token }}">
-                    
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_type">Varlık Tipi</label>
-                        <select id="asset-symbol" name="symbol" class="form-control" required style="background: var(--bg-main); color: var(--text-primary);">
-                            {% for symbol, info in supported.items() %}
-                            <option value="{{ symbol }}" style="color: black;">{{ info.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_amount">Miktar</label>
-                        <input type="number" step="0.01" min="0.01" id="asset-amount" name="amount" class="form-control" placeholder="10.5" required>
-                    </div>
-                    
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="asset_buy_price">Toplam Ödenen Tutar</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="number" step="0.01" min="0" id="asset-price" name="purchase_price" class="form-control" placeholder="32.50" required>
-                            <select id="asset-purchase-currency" name="purchase_currency" class="form-control" style="width: auto; background: var(--bg-main); color: var(--text-primary);">
-                                <option value="TRY" style="color: black;">TRY</option>
-                                <option value="USD" style="color: black;">USD</option>
-                                <option value="EUR" style="color: black;">EUR</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary" style="margin-top: 0.5rem;" data-i18n="btn_add_portfolio">Portföye Ekle</button>
-                </form>
+        <!-- Grafik Tam Genişlikte (En Altta) -->
+        {% if items %}
+        <div class="glass-card fade-in" style="animation-delay: 0.3s; margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-chart-pie"></i> <span data-i18n="distribution">Dağılım</span></h3>
+            <div style="position: relative; height: 380px;">
+                <canvas id="portfolioChart"></canvas>
             </div>
-
-            <!-- Sağ: Grafik -->
-            {% if items %}
-            <div class="glass-card">
-                <h3 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-chart-pie"></i> <span data-i18n="distribution">Dağılım</span></h3>
-                <div style="position: relative; height: 380px;">
-                    <canvas id="portfolioChart"></canvas>
-                </div>
-            </div>
-            {% endif %}
         </div>
-        </div>
+        {% endif %}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
